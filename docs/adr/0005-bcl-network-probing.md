@@ -73,3 +73,5 @@ decision-makers: Тарахович Л.С.
 ## Дополнительная информация
 
 Связанные требования: REQ-SEC-001, 002, REQ-INT-006, REQ-FUNC-003…005, 010, 020, REQ-COMP-001. Представления SDD: 001-context, 005-interface, 007-algorithm. Решение использовать ARP-таблицу для «тихих» хостов принято по итогам согласования с заказчиком (SDD 5.4, SYS-FUNC-015).
+
+`uml/img/activity-lan-discovery.png`

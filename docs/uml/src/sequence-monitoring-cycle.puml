@@ -1,0 +1,40 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+title Цикл мониторинга (UC-02, UC-03, UC-10)
+autonumber
+
+actor "Таймер" as T
+participant ":MonitoringService" as Mon
+participant ":StatusEvaluator" as Ev
+participant ":MainViewModel" as VM
+participant "Сетевой стек\nWindows" as Net
+
+[-> Mon : Start(interval)
+activate Mon
+loop пока мониторинг запущен
+    T -> Mon : тик таймера
+    create participant "ProbeTask" as PT
+    Mon -> PT : «create» (на каждый узел)
+    activate PT
+    PT ->> Net : ICMP, TCP, HTTP (параллельно)
+    activate Net
+    Net --> PT : результаты
+    deactivate Net
+    note right of PT : {≤ таймаут проверки}
+    PT --> Mon : ProbeResult
+    deactivate PT
+    destroy PT
+    Mon -> Ev : Evaluate(окно из 20 циклов)
+    activate Ev
+    Ev --> Mon : HostStatus
+    deactivate Ev
+    Mon ->> VM : HostUpdated (пакетом, 100–250 мс)
+    alt статус изменился между «Доступен» и «Недоступен»
+        ref over Mon, VM : Показать уведомление (UC-10)
+    end
+end
+[-> Mon : Stop()
+[<-- Mon : мониторинг остановлен
+deactivate Mon
+@enduml

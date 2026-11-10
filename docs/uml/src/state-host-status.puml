@@ -1,0 +1,29 @@
+@startuml
+skinparam shadowing false
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #334E96
+title Состояния узла в мониторинге
+
+[*] --> Stopped
+state Stopped : Мониторинг не запущен
+
+state Monitoring {
+    [*] --> Pending
+    state Pending : Ожидание первого результата
+    state Available : Доступен
+    state Unstable : Нестабильный
+    state Unavailable : Недоступен
+
+    Pending --> Available : успешный цикл,\nпотери ≤ 10 %
+    Pending --> Unstable : неудачный цикл
+    Available --> Unstable : потери > 10 %
+    Unstable --> Available : потери ≤ 10 %
+    Available --> Unavailable : 3 неудачи подряд
+    Unstable --> Unavailable : 3 неудачи подряд
+    Unavailable --> Unstable : успешный цикл,\nпотери > 10 %
+    Unavailable --> Available : успешный цикл,\nпотери ≤ 10 %
+}
+
+Stopped --> Monitoring : Start
+Monitoring --> Stopped : Stop
+@enduml
