@@ -1,40 +1,62 @@
 @startuml
+hide footbox
 skinparam shadowing false
 skinparam sequenceMessageAlign center
+skinparam defaultTextAlignment center
+
+skinparam ParticipantMinWidth 145
+skinparam ParticipantBackgroundColor #FFFFFF
+skinparam ParticipantBorderColor #000000
+skinparam ArrowColor #000000
+skinparam SequenceLifeLineBorderColor #000000
+skinparam SequenceLifeLineBackgroundColor #FFFFFF
+skinparam SequenceGroupBackgroundColor #FFFFFF
+skinparam SequenceGroupBorderColor #000000
+skinparam SequenceDestroyColor #D32F2F
+skinparam NoteBackgroundColor #FFFFFF
+skinparam NoteBorderColor #000000
+
 title Цикл мониторинга (UC-02, UC-03, UC-10)
 autonumber
 
-actor "Таймер" as T
-participant ":MonitoringService" as Mon
-participant ":StatusEvaluator" as Ev
-participant ":MainViewModel" as VM
+participant ":MonitoringService\n " as Mon
+participant ":PeriodicTimer\n " as T
+participant ":ProbeTask\n " as PT
 participant "Сетевой стек\nWindows" as Net
+participant ":StatusEvaluator\n " as Ev
+participant ":MainViewModel\n " as VM
+participant "Центр уведомлений\nWindows" as Notif
 
 [-> Mon : Start(interval)
 activate Mon
+
 loop пока мониторинг запущен
     T -> Mon : тик таймера
-    create participant "ProbeTask" as PT
-    Mon -> PT : «create» (на каждый узел)
+    Mon -> PT : запуск проверки\n(на каждый узел)
     activate PT
-    PT ->> Net : ICMP, TCP, HTTP (параллельно)
+    PT -> Net : ICMP, TCP, HTTP\n(параллельно)
     activate Net
-    Net --> PT : результаты
+    Net --> PT : результаты проверок
     deactivate Net
-    note right of PT : {≤ таймаут проверки}
+    note right of PT : {время проверки\n≤ таймаут}
     PT --> Mon : ProbeResult
     deactivate PT
     destroy PT
+
     Mon -> Ev : Evaluate(окно из 20 циклов)
     activate Ev
     Ev --> Mon : HostStatus
     deactivate Ev
-    Mon ->> VM : HostUpdated (пакетом, 100–250 мс)
-    alt статус изменился между «Доступен» и «Недоступен»
-        ref over Mon, VM : Показать уведомление (UC-10)
+
+    Mon ->> VM : HostUpdated\n(пакетом, 100–250 мс)
+    activate VM
+    opt статус изменился:\nAvailable ↔ Unavailable
+        VM ->> Notif : показать\nуведомление (UC-10)
     end
+    deactivate VM
+    |||
 end
+
 [-> Mon : Stop()
-[<-- Mon : мониторинг остановлен
 deactivate Mon
 @enduml

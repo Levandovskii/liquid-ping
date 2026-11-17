@@ -1,29 +1,33 @@
 @startuml
+hide empty description
+skinparam monochrome true
 skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam StateTextAlignment center
 skinparam StateBackgroundColor #FFFFFF
-skinparam StateBorderColor #334E96
+skinparam StateBorderColor #000000
+skinparam ArrowColor #000000
+skinparam nodesep 90
+skinparam ranksep 75
+
 title Состояния узла в мониторинге
 
-[*] --> Stopped
-state Stopped : Мониторинг не запущен
+state "Pending\n(Ожидание результата)" as Pending
+state "Available\n(Доступен)" as Available
+state "Unstable\n(Нестабильный)" as Unstable
+state "Unavailable\n(Недоступен)" as Unavailable
 
-state Monitoring {
-    [*] --> Pending
-    state Pending : Ожидание первого результата
-    state Available : Доступен
-    state Unstable : Нестабильный
-    state Unavailable : Недоступен
+[*] -down-> Pending
 
-    Pending --> Available : успешный цикл,\nпотери ≤ 10 %
-    Pending --> Unstable : неудачный цикл
-    Available --> Unstable : потери > 10 %
-    Unstable --> Available : потери ≤ 10 %
-    Available --> Unavailable : 3 неудачи подряд
-    Unstable --> Unavailable : 3 неудачи подряд
-    Unavailable --> Unstable : успешный цикл,\nпотери > 10 %
-    Unavailable --> Available : успешный цикл,\nпотери ≤ 10 %
-}
+Pending -down-> Available : успех\n[потери ≤ 10 %]
+Pending -down-> Unstable : сбой цикла
 
-Stopped --> Monitoring : Start
-Monitoring --> Stopped : Stop
+Available -right-> Unstable : [потери > 10 %]
+Unstable -left-> Available : [потери ≤ 10 %]
+
+Available -down-> Unavailable : [3 сбоя подряд]
+Unstable -left-> Unavailable : [3 сбоя подряд]
+
+Unavailable -up-> Available : успех\n[потери ≤ 10 %]
+Unavailable -left-> Unstable : успех\n[потери > 10 %]
 @enduml
