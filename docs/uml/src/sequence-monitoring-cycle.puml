@@ -4,9 +4,18 @@ skinparam shadowing false
 skinparam sequenceMessageAlign center
 skinparam defaultTextAlignment center
 
-skinparam ParticipantMinWidth 145
+<style>
+sequenceDiagram {
+  destroy {
+    LineColor #D32F2F
+  }
+}
+</style>
+
 skinparam ParticipantBackgroundColor #FFFFFF
 skinparam ParticipantBorderColor #000000
+skinparam ActorBackgroundColor #FFFFFF
+skinparam ActorBorderColor #000000
 skinparam ArrowColor #000000
 skinparam SequenceLifeLineBorderColor #000000
 skinparam SequenceLifeLineBackgroundColor #FFFFFF
@@ -17,17 +26,17 @@ skinparam NoteBackgroundColor #FFFFFF
 skinparam NoteBorderColor #000000
 
 title Цикл мониторинга (UC-02, UC-03, UC-10)
-autonumber
 
-participant ":MonitoringService\n " as Mon
-participant ":PeriodicTimer\n " as T
-participant ":ProbeTask\n " as PT
-participant "Сетевой стек\nWindows" as Net
-participant ":StatusEvaluator\n " as Ev
-participant ":MainViewModel\n " as VM
+actor "Пользователь" as User
+participant "&#160;&#160;:MonitoringService&#160;&#160;\n&#160;" as Mon
+participant "&#160;&#160;&#160;&#160;&#160;&#160;:PeriodicTimer&#160;&#160;&#160;&#160;&#160;&#160;\n&#160;" as T
+participant "&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;:ProbeTask&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;\n&#160;" as PT
+participant "&#160;&#160;&#160;&#160;&#160;&#160;Сетевой стек&#160;&#160;&#160;&#160;&#160;&#160;\nWindows" as Net
+participant "&#160;&#160;&#160;&#160;:StatusEvaluator&#160;&#160;&#160;&#160;\n&#160;" as Ev
+participant "&#160;&#160;&#160;&#160;&#160;:MainViewModel&#160;&#160;&#160;&#160;&#160;\n&#160;" as VM
 participant "Центр уведомлений\nWindows" as Notif
 
-[-> Mon : Start(interval)
+User -> Mon : Start(interval)
 activate Mon
 
 loop пока мониторинг запущен
@@ -41,6 +50,7 @@ loop пока мониторинг запущен
     note right of PT : {время проверки\n≤ таймаут}
     PT --> Mon : ProbeResult
     deactivate PT
+    PT -[hidden]-> PT
     destroy PT
 
     Mon -> Ev : Evaluate(окно из 20 циклов)
@@ -57,6 +67,6 @@ loop пока мониторинг запущен
     |||
 end
 
-[-> Mon : Stop()
+User -> Mon : Stop()
 deactivate Mon
 @enduml
