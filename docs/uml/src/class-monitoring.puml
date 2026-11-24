@@ -147,15 +147,15 @@ TcpProbe ..|> IProbe
 HttpProbe ..|> IProbe
 
 MonitoringService ..|> IMonitoringService
-MonitoringService o-- "1..*" IProbe
-MonitoringService -- StatusEvaluator
-MonitoringService *-- "1..*" HostResultWindow
+MonitoringService "1" o-- "1..*" IProbe : использует
+MonitoringService "1" -- "1" StatusEvaluator
+MonitoringService "1" *-- "1..*" HostResultWindow : ведёт
 MonitoringService ..> HostSnapshot
 MonitoringService ..> HostUpdatedEventArgs
-HostUpdatedEventArgs *-- HostSnapshot
+HostUpdatedEventArgs "1" *-- "1" HostSnapshot : содержит
 
 StatusEvaluator ..> HostResultWindow
-HostSnapshot -- Host
+HostSnapshot "*" -- "1" Host
 HostSnapshot ..> HostStatus
 ProbeResult ..> ProbeKind
 ProbeResult ..> ProbeError

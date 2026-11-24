@@ -148,15 +148,15 @@ package "LiquidPing.Core" {
 
 JsonHostRepository ..|> IHostRepository
 JsonSettingsStore ..|> ISettingsStore
-JsonHostRepository -- JsonFileStore
-JsonSettingsStore -- JsonFileStore
+JsonHostRepository "1" -- "1" JsonFileStore
+JsonSettingsStore "1" -- "1" JsonFileStore
 JsonFileStore ..> AppPaths
-DefaultHosts ..> Host
+DefaultHosts ..> Host : создаёт
 AppSettings ..> ThemeMode
 
 InMemoryHistoryStore ..|> IHistoryStore
-IHistoryStore *-- HistoryPoint
-TrafficCounter ..> ProbeResult
+IHistoryStore "1" *-- "0..*" HistoryPoint : хранит
+TrafficCounter ..> ProbeResult : считает
 CsvExporter ..|> IResultExporter
 JsonExporter ..|> IResultExporter
 IResultExporter ..> HostSnapshot

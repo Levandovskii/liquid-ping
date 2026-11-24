@@ -146,19 +146,19 @@ PortScanner ..> PortSet
 PortScanner ..> PortResult
 PortScanner ..> PortScanResult
 PortScanner ..> PortScanProgress
-PortScanResult *-- PortResult
+PortScanResult "1" *-- "1..*" PortResult : содержит
 PortResult ..> PortState
 IPortScanner ..> Host
 
 LanDiscovery ..|> ILanDiscovery
-LanDiscovery -- IProbe
-LanDiscovery -- IArpTableReader
-LanDiscovery -- IOuiLookup
-LanDiscovery -- IHostNameResolver
+LanDiscovery "1" -- "1" IProbe
+LanDiscovery "1" -- "1" IArpTableReader
+LanDiscovery "1" -- "1" IOuiLookup
+LanDiscovery "1" -- "1" IHostNameResolver
 LanDiscovery ..> LanHostInfo
 LanDiscovery ..> LanScanProgress
 OuiVendorResolver ..|> IOuiLookup
 ArpTableReader ..|> IArpTableReader
-ArpTableReader ..> ArpEntry
+ArpTableReader ..> ArpEntry : создаёт
 DnsHostNameResolver ..|> IHostNameResolver
 @enduml

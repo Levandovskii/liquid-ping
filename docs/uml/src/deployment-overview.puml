@@ -3,8 +3,8 @@ skinparam monochrome false
 skinparam shadowing false
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
-skinparam nodesep 55
-skinparam ranksep 80
+skinparam nodesep 45
+skinparam ranksep 65
 skinparam ArrowColor #000000
 skinparam nodeBackgroundColor #FFFFFF
 skinparam nodeBorderColor #000000
@@ -13,12 +13,9 @@ skinparam artifactBackgroundColor #FFFFFF
 skinparam artifactBorderColor #000000
 skinparam databaseBackgroundColor #FFFFFF
 skinparam databaseBorderColor #000000
-skinparam noteBackgroundColor #FFFFFF
-skinparam noteBorderColor #000000
+skinparam linetype ortho
 skinparam roundCorner 0
-skinparam linetype polyline
 
-left to right direction
 title Диаграмма развёртывания LiquidPing
 
 node "Рабочая станция пользователя\nWindows 11 (22H2+), x64" <<device>> as Workstation {
@@ -27,32 +24,24 @@ node "Рабочая станция пользователя\nWindows 11 (22H2+)
 
     artifact "LiquidPing.App.exe" as AppArt
     artifact "LiquidPing.Core.dll" as CoreArt
-    artifact "CommunityToolkit.Mvvm.dll" as MvvmArt
-    artifact "Microsoft.Extensions.DependencyInjection.dll" as DiArt
-    artifact "Serilog.dll" as SerilogArt
+    artifact "Сторонние библиотеки\nCommunityToolkit.Mvvm\nMicrosoft.Extensions.DI\nSerilog" as LibsArt
   }
 
   database "Данные приложения\n%AppData%\\LiquidPing\nhosts.json, settings.json, logs" as AppData
 }
 
 node "Коммутатор или точка доступа\nлокальной сети" <<device>> as LanSwitch
-
 node "Хосты локальной сети\n(IPv4-подсети)" <<device>> as LanHosts
-
 node "DNS-сервер" <<device>> as DnsServer
-
 node "Узлы сети Интернет\n(сервисы, сайты)" <<device>> as InternetHosts
 
 AppArt --> CoreArt : вызов контрактов
-AppArt --> MvvmArt
-AppArt --> DiArt
-AppArt --> SerilogArt
-AppArt --> AppData : чтение и запись JSON
+AppArt --> LibsArt
+AppArt --> AppData : JSON
 CoreArt --> AppData : журнал
 
-Workstation -- LanSwitch : Ethernet / Wi-Fi 802.11
+Workstation -- LanSwitch : Ethernet
 LanSwitch -- LanHosts : IPv4/ARP
 LanSwitch -- InternetHosts : ICMP/TCP/HTTP(S)
-Workstation ..> DnsServer : DNS-запросы
-
+Workstation ..> DnsServer : DNS
 @enduml

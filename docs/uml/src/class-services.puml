@@ -100,13 +100,13 @@ package "LiquidPing.Core" {
   }
 }
 
-MonitoringCoordinator --> IMonitoringService
-MonitoringCoordinator --> NotificationService
+MonitoringCoordinator "1" -- "1" IMonitoringService : вызывает
+MonitoringCoordinator "1" -- "1" NotificationService
 NotificationService ..> HostUpdatedEventArgs
-NavigationService ..> MainViewModel
+NavigationService ..> MainViewModel : открывает
 MainViewModel ..> MonitoringCoordinator
-SettingsViewModel ..> ThemeService
-SettingsViewModel ..> LocalizationService
+SettingsViewModel ..> ThemeService : применяет
+SettingsViewModel ..> LocalizationService : переводит
 DialogService ..|> IDialogService
-TrayService ..> MainViewModel
+TrayService ..> MainViewModel : восстанавливает
 @enduml

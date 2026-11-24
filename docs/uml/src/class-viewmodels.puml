@@ -106,8 +106,8 @@ package "LiquidPing.Core" {
   }
 }
 
-App -- ShellWindow
-ShellWindow -- MainViewModel
+App "1" -- "1" ShellWindow
+ShellWindow "1" -- "1" MainViewModel
 
 MainViewModel --|> ViewModelBase
 HostCardViewModel --|> ViewModelBase
@@ -116,7 +116,7 @@ PortsViewModel --|> ViewModelBase
 LanDiscoveryViewModel --|> ViewModelBase
 SettingsViewModel --|> ViewModelBase
 
-MainViewModel *-- "1..*" HostCardViewModel
+MainViewModel "1" *-- "1..*" HostCardViewModel
 
-LiquidPing.App::ViewModels ..> LiquidPing.Core::Contracts
+LiquidPing.App::ViewModels ..> LiquidPing.Core::Contracts : использует контракты
 @enduml
