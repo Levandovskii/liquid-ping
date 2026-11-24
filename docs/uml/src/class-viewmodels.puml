@@ -1,0 +1,120 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam nodesep 20
+skinparam ranksep 40
+skinparam ArrowColor #000000
+hide empty members
+hide circle
+
+title Диаграмма классов: слой представления (MVVM)
+
+package "LiquidPing.App" {
+together {
+
+  class App {
+    -m_services : IServiceProvider
+    +OnStartup() : void
+    +OnExit() : void
+  }
+
+  class ShellWindow {
+    +ViewModel : MainViewModel
+  }
+
+  abstract class ViewModelBase {
+    #SetProperty~T~(field : T, value : T) : bool
+  }
+
+  class MainViewModel {
+    +Hosts : ObservableCollection~HostCardViewModel~
+    +IsMonitoring : bool
+    +CheckCommand : IAsyncRelayCommand
+    +ToggleMonitoringCommand : IRelayCommand
+    +AddHostCommand : IAsyncRelayCommand
+    +RemoveHostCommand : IAsyncRelayCommand
+    +OpenDetailsCommand : IRelayCommand
+  }
+
+  class HostCardViewModel {
+    +Host : Host
+    +Status : HostStatus
+    +Latency : TimeSpan
+    +PacketLoss : double
+    +ResolvedAddress : IPAddress
+    +Apply(snapshot : HostSnapshot) : void
+  }
+
+  class HostDetailsViewModel {
+    +Host : Host
+    +History : IReadOnlyList~HistoryPoint~
+    +LoadHistory() : void
+  }
+
+  class PortsViewModel {
+    +Host : Host
+    +PortSet : PortSet
+    +Results : ObservableCollection~PortResult~
+    +Progress : int
+    +ScanCommand : IAsyncRelayCommand
+    +CancelCommand : IRelayCommand
+  }
+
+  class LanDiscoveryViewModel {
+    +Hosts : ObservableCollection~LanHostInfo~
+    +IsScanning : bool
+    +ScanCommand : IAsyncRelayCommand
+    +AddToMonitoringCommand : IAsyncRelayCommand
+  }
+
+  class SettingsViewModel {
+    +Settings : AppSettings
+    +SaveCommand : IAsyncRelayCommand
+    +ApplyTheme(theme : ThemeMode) : void
+  }
+
+}
+}
+
+package "Контракты LiquidPing.Core" {
+  interface IMonitoringService
+  interface IPortScanner
+  interface ILanDiscovery
+  interface IHostRepository
+  interface ISettingsStore
+  interface IHistoryStore
+}
+
+App ..> ShellWindow
+App ..> IHostRepository
+App ..> ISettingsStore
+App ..> IMonitoringService
+
+ShellWindow --> MainViewModel
+
+MainViewModel --|> ViewModelBase
+HostCardViewModel --|> ViewModelBase
+HostDetailsViewModel --|> ViewModelBase
+PortsViewModel --|> ViewModelBase
+LanDiscoveryViewModel --|> ViewModelBase
+SettingsViewModel --|> ViewModelBase
+
+MainViewModel --> IMonitoringService
+MainViewModel --> IHostRepository
+MainViewModel *--> "1..*" HostCardViewModel
+HostDetailsViewModel --> IHistoryStore
+PortsViewModel --> IPortScanner
+LanDiscoveryViewModel --> ILanDiscovery
+LanDiscoveryViewModel --> IHostRepository
+SettingsViewModel --> ISettingsStore
+
+HostCardViewModel ..> HostSnapshot
+PortsViewModel ..> PortResult
+LanDiscoveryViewModel ..> LanHostInfo
+@enduml

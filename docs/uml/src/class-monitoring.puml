@@ -1,0 +1,147 @@
+@startuml
+set separator none
+skinparam monochrome true
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam nodesep 25
+skinparam ranksep 40
+skinparam ArrowColor #000000
+hide empty members
+hide circle
+
+left to right direction
+title Диаграмма классов: модели, проверки и мониторинг
+
+package "LiquidPing.Core.Models" {
+  class Host {
+    +Id : Guid
+    +Name : string
+    +Address : string
+    +TcpPort : int
+    +HttpUrl : string
+    +UseIcmp : bool
+    +UseTcp : bool
+    +UseHttp : bool
+    +IsValid() : bool
+  }
+
+  class HostSnapshot {
+    +Host : Host
+    +Status : HostStatus
+    +Latency : TimeSpan
+    +PacketLoss : double
+    +ResolvedAddress : IPAddress
+    +Timestamp : DateTimeOffset
+  }
+
+  class ProbeResult {
+    +Kind : ProbeKind
+    +Success : bool
+    +Latency : TimeSpan
+    +Error : ProbeError
+    +BytesSent : long
+    +BytesReceived : long
+    +Detail : string
+  }
+
+  enum ProbeKind {
+    Icmp
+    Tcp
+    Http
+  }
+
+  enum ProbeError {
+    None
+    Timeout
+    DnsFailure
+    Refused
+    Unreachable
+    HttpError
+  }
+
+  enum HostStatus {
+    Pending
+    Available
+    Unstable
+    Unavailable
+  }
+}
+
+package "LiquidPing.Core.Probes" {
+  interface IProbe {
+    +Kind : ProbeKind
+    +ProbeAsync(host : Host,\ntimeout : TimeSpan,\nct : CancellationToken) : Task~ProbeResult~
+  }
+
+  class IcmpProbe {
+    +Kind : ProbeKind
+    +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
+  }
+
+  class TcpProbe {
+    +Kind : ProbeKind
+    +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
+  }
+
+  class HttpProbe {
+    +Kind : ProbeKind
+    +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
+  }
+}
+
+package "LiquidPing.Core.Monitoring" {
+  interface IMonitoringService {
+    +HostUpdated : event EventHandler~HostUpdatedEventArgs~
+    +Start(interval : TimeSpan) : void
+    +Stop() : void
+    +CheckOnceAsync(ct : CancellationToken) : Task
+  }
+
+  class MonitoringService {
+    -m_probes : IReadOnlyList~IProbe~
+    -m_evaluator : StatusEvaluator
+    -m_windows : ConcurrentDictionary~Guid, HostResultWindow~
+    +HostUpdated : event EventHandler~HostUpdatedEventArgs~
+    +Start(interval : TimeSpan) : void
+    +Stop() : void
+    +CheckOnceAsync(ct : CancellationToken) : Task
+  }
+
+  class StatusEvaluator {
+    +WindowSize : int
+    +Evaluate(window : HostResultWindow) : HostStatus
+  }
+
+  class HostResultWindow {
+    +Count : int
+    +ConsecutiveFailures : int
+    +AddCycle(success : bool) : void
+    +PacketLossPercent() : double
+  }
+
+  class HostUpdatedEventArgs {
+    +Snapshot : HostSnapshot
+  }
+}
+
+IcmpProbe ..|> IProbe
+TcpProbe ..|> IProbe
+HttpProbe ..|> IProbe
+
+MonitoringService ..|> IMonitoringService
+MonitoringService o--> "1..*" IProbe : использует
+MonitoringService --> StatusEvaluator
+MonitoringService *--> "1..*" HostResultWindow : ведёт окна
+MonitoringService ..> HostSnapshot : создаёт
+HostUpdatedEventArgs *--> HostSnapshot
+
+StatusEvaluator ..> HostResultWindow
+HostSnapshot --> Host
+HostSnapshot ..> HostStatus
+ProbeResult ..> ProbeKind
+ProbeResult ..> ProbeError
+IProbe ..> ProbeResult
+@enduml

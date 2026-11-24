@@ -1,0 +1,48 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam nodesep 40
+skinparam ranksep 60
+skinparam ArrowColor #000000
+
+left to right direction
+title Диаграмма развёртывания LiquidPing
+
+node "Рабочая станция пользователя\nWindows 11 (22H2+), x64" <<device>> as Workstation {
+
+  node "Среда исполнения .NET 10\n(self-contained)" <<execution environment>> as Dotnet {
+
+    artifact "LiquidPing.App.exe" as AppArt
+    artifact "LiquidPing.Core.dll" as CoreArt
+    artifact "CommunityToolkit.Mvvm.dll\nMicrosoft.Extensions.DependencyInjection.dll\nSerilog.dll" as LibsArt
+  }
+
+  database "Данные приложения\n%AppData%\\LiquidPing\nhosts.json, settings.json, logs" as AppData
+}
+
+node "Коммутатор или точка доступа\nлокальной сети" <<device>> as LanSwitch
+
+node "Хосты локальной сети\n(IPv4-подсети)" <<device>> as LanHosts
+
+node "DNS-сервер" <<device>> as DnsServer
+
+node "Узлы сети Интернет\n(сервисы, сайты)" <<device>> as InternetHosts
+
+AppArt --> CoreArt : вызов контрактов
+AppArt --> LibsArt
+AppArt --> AppData : чтение и запись JSON
+CoreArt --> AppData : журнал
+
+Workstation -- LanSwitch : Ethernet / Wi-Fi 802.11
+LanSwitch -- LanHosts : IPv4, ICMP, ARP
+LanSwitch -- InternetHosts : ICMP, TCP, HTTP(S)
+Workstation ..> DnsServer : DNS-запросы
+
+note bottom of Workstation
+  Поставка: переносимый архив self-contained win-x64,
+  права администратора не требуются (ADR-0007).
+  Внешние связи ограничены сетью и файловой системой.
+end note
+@enduml
