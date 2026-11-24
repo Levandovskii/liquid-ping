@@ -2,7 +2,7 @@
 
 Для LiquidPing — сетевого сканера и ping-монитора
 
-Версия 0.3
+Версия 0.4
 
 Подготовил Тарахович Лев Сергеевич
 
@@ -36,6 +36,7 @@
 | Тарахович Л.С. | 2026-10-28 | Первая версия SDD на основе SRS 1.1                                                                                                                              | 0.1     |
 | Тарахович Л.С. | 2026-10-26 | Актуализация архитектуры по итогам согласования: добавлены SYS-FUNC-015, 016, системный трей SYS-FUNC-014 возвращён в план, закрыты открытые вопросы 1, 2, 3 и 6 | 0.2     |
 | Тарахович Л.С. | 2026-11-11 | Добавлены UML-диаграммы (варианты использования, активности, состояний, последовательности), ссылки на глоссарий и дополнительные спецификации, ADR-0008         | 0.3     |
+| Тарахович Л.С. | 2026-11-25 | Добавлены диаграммы классов, компонентов и развёртывания, обновлены представления 002, 003 и 012, добавлен ADR-0009                                               | 0.4     |
 
 ---
 
@@ -81,6 +82,7 @@ SDD отвечает на вопрос **КАК** будут реализова�
 | Дополнительные спецификации                    | Нормативная | [../supplementary-spec.md](../supplementary-spec.md)           |
 | ISO/IEC/IEEE 42010 — Architecture description  | Справочная  | https://www.iso.org/standard/74393.html                        |
 | MADR — Markdown Architectural Decision Records | Справочная  | https://adr.github.io/madr/                                    |
+| OMG UML 2.5.1 — спецификация языка             | Справочная  | https://www.omg.org/spec/UML/2.5.1/                            |
 | Шаблон SDD кафедры ЭВМ БГУИР                   | Нормативная | https://github.com/BSUIR-SDLC/SDLC                             |
 
 ### 1.5 Обзор документа
@@ -116,11 +118,11 @@ SDD отвечает на вопрос **КАК** будут реализова�
 
 #### 2.2.2 Композиция
 
-Выбрана. Адресует C4, C5. Язык: диаграмма компонентов (Mermaid). Представление: `002-composition`.
+Выбрана. Адресует C4, C5. Язык: диаграмма компонентов UML (PlantUML). Представление: `002-composition`.
 
 #### 2.2.3 Логическое представление
 
-Выбрана. Адресует C5. Язык: таблица основных типов. Представление: `003-logical`.
+Выбрана. Адресует C5. Язык: диаграмма классов UML (PlantUML) и таблица основных типов. Представление: `003-logical`.
 
 #### 2.2.4 Физическое представление
 
@@ -164,7 +166,7 @@ SDD отвечает на вопрос **КАК** будут реализова�
 
 #### 2.2.14 Развёртывание
 
-Выбрана. Адресует C6. Язык: текстовое описание. Представление: `012-deployment`.
+Выбрана. Адресует C6. Язык: диаграмма развёртывания UML (PlantUML) и текстовое описание. Представление: `012-deployment`.
 
 #### 2.2.15 Ресурсы
 
@@ -199,38 +201,12 @@ SDD отвечает на вопрос **КАК** будут реализова�
 - **Viewpoint**: Композиция
 - **Representation**:
 
-```mermaid
-flowchart TB
-    subgraph App["LiquidPing.App (WPF)"]
-        Views["Views (XAML)"]
-        ViewModels["ViewModels"]
-        Shell["Shell: backdrop, темы, локализация, уведомления, трей"]
-    end
-    subgraph Core["LiquidPing.Core"]
-        Monitoring["MonitoringService"]
-        Evaluator["StatusEvaluator"]
-        Probes["Probes: ICMP, TCP, HTTP"]
-        PortScan["PortScanner"]
-        LanDisc["LanDiscovery"]
-        Oui["OuiLookup (встроенная база OUI)"]
-        Storage["HostRepository, SettingsStore"]
-        Support["HistoryStore, TrafficCounter, Exporter"]
-    end
-    Views --> ViewModels
-    Shell --> Views
-    ViewModels --> Monitoring
-    ViewModels --> PortScan
-    ViewModels --> LanDisc
-    ViewModels --> Storage
-    ViewModels --> Support
-    Monitoring --> Probes
-    Monitoring --> Evaluator
-    LanDisc --> Probes
-    LanDisc --> Oui
-```
+![Диаграмма компонентов](../uml/img/component-overview.png)
 
-Решение разбивает код на два проекта, чтобы сетевая логика не зависела от WPF и тестировалась отдельно (ADR-0003). Найденный хост добавляется в список через ViewModel (`ViewModels --> Storage`): `LanDiscovery` сам в хранилище не пишет, поэтому граница слоёв сохраняется.
-- **More Information**: реализует REQ-SEC-001, REQ-FUNC-009, раздел 3.5.4 и 3.5.5 SRS; модульные тесты — проект `LiquidPing.Core.Tests`.
+Исходник: [component-overview.puml](../uml/src/component-overview.puml). Диаграмма компонентов показывает два модуля сборки — `LiquidPing.App` (подкомпоненты Views, ViewModels и оболочка) и `LiquidPing.Core` (Monitoring, Probes, Scanning, Discovery, Storage, Support), — тестовый проект `LiquidPing.Core.Tests`, а также внешние компоненты среды исполнения: сетевой стек Windows, DWM, центр уведомлений и файловую систему `%AppData%\LiquidPing`. Точки соединения подписаны контрактами `IMonitoringService`, `IPortScanner`, `ILanDiscovery`, `IHostRepository`, `ISettingsStore`, `IHistoryStore` и `IResultExporter`; направление стрелок совпадает с правилом зависимостей `App → Core`, обратной зависимости нет.
+
+Решение разбивает код на два проекта, чтобы сетевая логика не зависела от WPF и тестировалась отдельно (ADR-0003). Найденный хост добавляется в список через ViewModel: `LanDiscovery` сам в хранилище не пишет, поэтому граница слоёв сохраняется. Проверки скрыты за `IMonitoringService` и `IProbe`, поэтому замена реализации проверки не затрагивает интерфейс.
+- **More Information**: реализует REQ-SEC-001, REQ-FUNC-009, раздел 3.5.4 и 3.5.5 SRS; модульные тесты — проект `LiquidPing.Core.Tests`; решение ADR-0009.
 
 ### 003-logical
 
@@ -239,20 +215,52 @@ flowchart TB
 - **Viewpoint**: Логическое представление
 - **Representation**:
 
-| Тип                                             | Роль                                                                                   | Связи                                          |
-|-------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------|
-| `Host`                                          | Узел: имя, адрес, порт TCP, URL, включённые проверки                                   | Используется всеми сервисами                   |
-| `IProbe` и `IcmpProbe`, `TcpProbe`, `HttpProbe` | Одна проверка узла; возвращает `ProbeResult`                                           | Strategy; вызывается `MonitoringService`       |
-| `ProbeResult`                                   | Успех, задержка, тип ошибки, переданные и полученные байты                             | Результат `IProbe`                             |
-| `StatusEvaluator`, `HostStatus`                 | Оценка статуса по окну из 20 циклов; `Pending`, `Available`, `Unstable`, `Unavailable` | Вызывается `MonitoringService`                 |
-| `MonitoringService`                             | Циклы проверок, запуск и остановка, событие `HostUpdated`                              | Использует `IProbe`, `StatusEvaluator`         |
-| `PortScanner`                                   | Сканирование портов с прогрессом и отменой                                             | Возвращает `ScanResult`                        |
-| `LanDiscovery`, `LanHostInfo`                   | Обнаружение хостов подсети; запись о найденном хосте                                   | Использует `IProbe`, ARP-таблицу, `IOuiLookup` |
-| `IOuiLookup`, `OuiVendorResolver`               | Определение производителя по MAC-адресу из встроенной базы OUI                         | Используется `LanDiscovery`                    |
-| `IHostRepository`, `ISettingsStore`             | Хранение узлов и настроек в JSON                                                       | Используются ViewModel                         |
+Логическая структура описана диаграммами классов UML. Модель разделена на пять диаграмм по пакетам, чтобы каждая читалась на странице отчёта: три диаграммы ядра и две диаграммы приложения.
 
-Сигнатуры контрактов приведены в `005-interface`.
-- **More Information**: реализует REQ-FUNC-003…012, REQ-FUNC-020…022; шаблон Strategy для проверок (см. 011-patterns).
+![Диаграмма классов: модели, проверки и мониторинг](../uml/img/class-monitoring.png)
+
+Исходник: [class-monitoring.puml](../uml/src/class-monitoring.puml). Пакеты `LiquidPing.Core.Models`, `LiquidPing.Core.Probes` и `LiquidPing.Core.Monitoring`: типы данных проверки, три реализации `IProbe` и сервис мониторинга с оценкой статуса. Показаны наследование реализаций от интерфейса (`IcmpProbe`, `TcpProbe`, `HttpProbe` реализуют `IProbe`), зависимость `MonitoringService` от набора проверок, композиция окон результатов и создание снимка узла `HostSnapshot`.
+
+![Диаграмма классов: сканирование портов и обнаружение хостов](../uml/img/class-network.png)
+
+Исходник: [class-network.puml](../uml/src/class-network.puml). Пакеты `LiquidPing.Core.Scanning` и `LiquidPing.Core.Discovery`: сканер портов с наборами `PortSet` и результатами `PortScanResult`, обнаружение хостов с чтением ARP-таблицы, разрешением имён и локальной базой OUI. `LanDiscovery` зависит от четырёх контрактов, поэтому каждую часть обнаружения можно заменить и протестировать отдельно.
+
+![Диаграмма классов: хранение данных и вспомогательные сервисы](../uml/img/class-storage.png)
+
+Исходник: [class-storage.puml](../uml/src/class-storage.puml). Пакеты `LiquidPing.Core.Storage` и `LiquidPing.Core.Support`: репозитории узлов и настроек, общий файловый адаптер `JsonFileStore`, пути `AppPaths`, набор узлов по умолчанию, история задержек в кольцевом буфере, счётчик трафика и экспортёры.
+
+![Диаграмма классов: слой представления (MVVM)](../uml/img/class-viewmodels.png)
+
+Исходник: [class-viewmodels.puml](../uml/src/class-viewmodels.puml). Пакет `LiquidPing.App` и контракты ядра: приложение `App`, окно `ShellWindow`, базовый `ViewModelBase` и шесть моделей представления. Каждая модель представления зависит только от контрактов ядра, а не от их реализаций.
+
+![Диаграмма классов: сервисы приложения](../uml/img/class-services.png)
+
+Исходник: [class-services.puml](../uml/src/class-services.puml). Пакет `LiquidPing.App.Services`: координатор мониторинга, навигация, уведомления, темы, локализация, трей и диалоги; связи с моделями представления и контрактом `IMonitoringService`.
+
+| Пакет                     | Тип                                             | Роль                                                                                   | Связи                                          |
+|---------------------------|-------------------------------------------------|----------------------------------------------------------------------------------------|------------------------------------------------|
+| Core.Models               | `Host`                                          | Узел: имя, адрес, порт TCP, URL, включённые проверки                                   | Используется всеми сервисами                   |
+| Core.Models               | `ProbeResult`                                   | Успех, задержка, тип ошибки, переданные и полученные байты                             | Результат `IProbe`                             |
+| Core.Models               | `HostSnapshot`                                  | Снимок состояния узла для интерфейса                                                   | Создаётся `MonitoringService`                  |
+| Core.Models               | `AppSettings`                                   | Типизированные настройки приложения                                                    | Используется `ISettingsStore`                  |
+| Core.Models               | `ProbeKind`, `ProbeError`, `HostStatus`, `ThemeMode`, `PortState` | Перечисления видов проверок, ошибок, статусов и тем                     | Атрибуты типов данных                          |
+| Core.Probes               | `IProbe` и `IcmpProbe`, `TcpProbe`, `HttpProbe` | Одна проверка узла                                                                     | Strategy; вызывается `MonitoringService`       |
+| Core.Monitoring           | `MonitoringService`, `IMonitoringService`       | Циклы проверок, запуск и остановка, событие `HostUpdated`                              | Использует `IProbe`, `StatusEvaluator`         |
+| Core.Monitoring           | `StatusEvaluator`, `HostResultWindow`           | Оценка статуса по окну из 20 циклов; `Pending`, `Available`, `Unstable`, `Unavailable` | Вызывается `MonitoringService`                 |
+| Core.Scanning             | `PortScanner`, `IPortScanner`                   | Сканирование портов с прогрессом и отменой                                             | Возвращает `PortScanResult`                    |
+| Core.Scanning             | `PortSet`, `PortResult`, `PortScanProgress`     | Набор портов, результат порта, прогресс                                                | Атрибуты сканирования                          |
+| Core.Discovery            | `LanDiscovery`, `ILanDiscovery`, `LanHostInfo`  | Обнаружение хостов подсети; запись о найденном хосте                                   | Использует `IProbe`, `IArpTableReader`, `IOuiLookup`, `IHostNameResolver` |
+| Core.Discovery            | `OuiVendorResolver`, `ArpTableReader`, `DnsHostNameResolver` | Производитель по MAC, ARP-таблица, обратное разрешение имён              | Реализации контрактов обнаружения              |
+| Core.Storage              | `IHostRepository`, `ISettingsStore`             | Хранение узлов и настроек в JSON                                                       | Используются ViewModel                         |
+| Core.Storage              | `JsonFileStore`, `AppPaths`, `DefaultHosts`     | Атомарная запись JSON, пути `%AppData%`, шесть узлов по умолчанию                      | Используются репозиториями                     |
+| Core.Support              | `IHistoryStore`, `InMemoryHistoryStore`         | История задержек за сеанс, не более 1000 точек на узел                                 | Используется деталями узла                     |
+| Core.Support              | `TrafficCounter`, `IResultExporter`, `CsvExporter`, `JsonExporter` | Счётчики трафика и экспорт результатов                             | Используют `ProbeResult` и `HostSnapshot`      |
+| App                       | `App`, `ShellWindow`, `ViewModelBase`           | Точка входа, окно-оболочка, базовый класс моделей представления                        | Связывает слой представления                   |
+| App.ViewModels            | `MainViewModel`, `HostCardViewModel`, `HostDetailsViewModel`, `PortsViewModel`, `LanDiscoveryViewModel`, `SettingsViewModel` | Экраны и карточки узлов | Зависят только от контрактов Core |
+| App.Services              | `MonitoringCoordinator`, `NavigationService`, `NotificationService`, `ThemeService`, `LocalizationService`, `TrayService`, `IDialogService` | Сервисы оболочки | Связывают ViewModel, Core и ОС |
+
+На диаграммах применены четыре вида отношений: наследование и реализация интерфейсов (`..|>` и `--|>`), ассоциация с кратностью (`-->`, `o-->`), композиция (`*-->`) и зависимость (`..>`). Видимость членов записана знаками `+` (public), `-` (private), `#` (protected). Сигнатуры контрактов приведены в `005-interface`.
+- **More Information**: реализует REQ-FUNC-003…012, REQ-FUNC-020…022; шаблон Strategy для проверок (см. 011-patterns); решение ADR-0009.
 
 ### 004-information
 
@@ -331,7 +339,7 @@ public interface IMonitoringService
 
 public interface IPortScanner
 {
-    Task<ScanResult> ScanAsync(Host host, PortSet ports, IProgress<ScanProgress> progress, CancellationToken ct);
+    Task<PortScanResult> ScanAsync(Host host, PortSet ports, IProgress<PortScanProgress> progress, CancellationToken ct);
 }
 
 public record LanHostInfo(
@@ -349,7 +357,19 @@ public interface IOuiLookup
 
 public interface ILanDiscovery
 {
-    Task<IReadOnlyList<LanHostInfo>> DiscoverAsync(IProgress<ScanProgress> progress, CancellationToken ct);
+    Task<IReadOnlyList<LanHostInfo>> DiscoverAsync(IProgress<LanScanProgress> progress, CancellationToken ct);
+}
+
+public interface IArpTableReader
+{
+    IReadOnlyList<ArpEntry> Read();
+}
+
+public record ArpEntry(IPAddress Address, PhysicalAddress MacAddress);
+
+public interface IHostNameResolver
+{
+    Task<string?> ResolveAsync(IPAddress address, CancellationToken ct);
 }
 
 public interface IHostRepository
@@ -362,6 +382,17 @@ public interface ISettingsStore
 {
     Task<AppSettings> LoadAsync(CancellationToken ct);
     Task SaveAsync(AppSettings settings, CancellationToken ct);
+}
+
+public interface IHistoryStore
+{
+    void Append(Guid hostId, HistoryPoint point);
+    IReadOnlyList<HistoryPoint> Get(Guid hostId, TimeSpan window);
+}
+
+public interface IResultExporter
+{
+    Task ExportAsync(string path, IReadOnlyList<HostSnapshot> snapshots, CancellationToken ct);
 }
 ```
 
@@ -532,10 +563,14 @@ report progress after each target
 - **Viewpoint**: Развёртывание
 - **Representation**:
 
+![Диаграмма развёртывания](../uml/img/deployment-overview.png)
+
+Исходник: [deployment-overview.puml](../uml/src/deployment-overview.puml). Диаграмма развёртывания показывает узел «Рабочая станция пользователя» с устройством Windows 11 x64, средой исполнения .NET 10 и тремя артефактами (`LiquidPing.App.exe`, `LiquidPing.Core.dll`, сторонние библиотеки), хранилище данных `%AppData%\LiquidPing` и внешние устройства: коммутатор или точку доступа локальной сети, хосты локальной сети, DNS-сервер и узлы сети Интернет. Линии связи подписаны протоколами: Ethernet или Wi-Fi 802.11, IPv4/ICMP/ARP для локальной сети, ICMP/TCP/HTTP(S) для интернета, DNS для разрешения имён.
+
 Приложение работает на одном ПК под Windows 11 x64: исполняемый файл с библиотеками (переносимый архив) и данные в `%AppData%\LiquidPing` (`settings.json`, `hosts.json`, `logs`). Единственное внешнее взаимодействие — сеть: интернет и локальная сеть.
 
 Поставка — переносимый архив self-contained для `win-x64`, публикуется в разделе Releases на GitHub. Сборка: `dotnet publish -c Release -r win-x64 --self-contained`. Установка сводится к распаковке; права администратора не нужны. Установщик в версию 1.0 не входит.
-- **More Information**: реализует раздел 3.5.1, 3.5.2 SRS, REQ-SEC-001, REQ-COMP-001; решение ADR-0007.
+- **More Information**: реализует раздел 3.5.1, 3.5.2 SRS, REQ-SEC-001, REQ-COMP-001; решения ADR-0007, ADR-0009.
 
 ### 013-dependency
 
@@ -569,6 +604,7 @@ report progress after each target
 | ADR-0006 | [Хранение данных: JSON в AppData](../adr/0006-json-persistence-in-appdata.md)                | accepted | JSON-файлы с атомарной записью; история только в памяти; база OUI — встроенный сжатый ресурс                    | 004                |
 | ADR-0007 | [Формат поставки](../adr/0007-portable-self-contained-distribution.md)                       | accepted | Переносимый self-contained архив для `win-x64`                                                                  | 012                |
 | ADR-0008 | [Моделирование динамического поведения на UML](../adr/0008-uml-dynamic-modeling-plantuml.md) | accepted | PlantUML как «диаграмма в виде кода»; четыре типа диаграмм, связанные трассируемостью                           | 001, 006, 007, 008 |
+| ADR-0009 | [Моделирование статической структуры на UML](../adr/0009-uml-static-structure-modeling.md)    | accepted | Пять диаграмм классов по пакетам, диаграммы компонентов и развёртывания; связи классов, компонентов и артефактов | 002, 003, 012      |
 
 ---
 
