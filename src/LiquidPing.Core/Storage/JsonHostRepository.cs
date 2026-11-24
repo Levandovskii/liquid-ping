@@ -22,7 +22,7 @@ public sealed class JsonHostRepository : IHostRepository
     {
         var document = await m_store.ReadAsync<HostsDocument>(m_path, ct).ConfigureAwait(false);
 
-        if (document?.Hosts is null || document.Hosts.Count == 0)
+        if (document?.Hosts is null)
         {
             return DefaultHosts.Create();
         }
