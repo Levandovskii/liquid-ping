@@ -1,14 +1,26 @@
 @startuml
 set separator none
-skinparam monochrome true
+skinparam monochrome false
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
 skinparam packageStyle rectangle
-skinparam nodesep 25
-skinparam ranksep 40
+skinparam nodesep 30
+skinparam ranksep 45
 skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam noteBackgroundColor #FFFFFF
+skinparam noteBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
 hide empty members
 hide circle
 
@@ -16,83 +28,83 @@ left to right direction
 title Диаграмма классов: хранение данных и вспомогательные сервисы
 
 package "LiquidPing.Core.Storage" {
-  interface IHostRepository {
+  interface "IHostRepository" as IHostRepository <<interface>> {
     +LoadAsync(ct : CancellationToken) : Task~IReadOnlyList~Host~~
     +SaveAsync(hosts : IReadOnlyList~Host~,\nct : CancellationToken) : Task
   }
 
-  class JsonHostRepository {
+  class "**JsonHostRepository**" as JsonHostRepository {
     -m_store : JsonFileStore
     +LoadAsync(ct) : Task~IReadOnlyList~Host~~
     +SaveAsync(hosts, ct) : Task
   }
 
-  interface ISettingsStore {
+  interface "ISettingsStore" as ISettingsStore <<interface>> {
     +LoadAsync(ct : CancellationToken) : Task~AppSettings~
     +SaveAsync(settings : AppSettings,\nct : CancellationToken) : Task
   }
 
-  class JsonSettingsStore {
+  class "**JsonSettingsStore**" as JsonSettingsStore {
     -m_store : JsonFileStore
     +LoadAsync(ct) : Task~AppSettings~
     +SaveAsync(settings, ct) : Task
   }
 
-  class JsonFileStore {
+  class "**JsonFileStore**" as JsonFileStore {
     +ReadAsync~T~(path : string,\nct : CancellationToken) : Task~T~
     +WriteAsync~T~(path : string, value : T,\nct : CancellationToken) : Task
   }
 
-  class AppPaths {
+  class "**AppPaths**" as AppPaths {
     +{static} DataDirectory : string
     +{static} HostsFile : string
     +{static} SettingsFile : string
     +{static} LogDirectory : string
   }
 
-  class DefaultHosts {
+  class "**DefaultHosts**" as DefaultHosts {
     +{static} Create() : IReadOnlyList~Host~
   }
 }
 
 package "LiquidPing.Core.Support" {
-  interface IHistoryStore {
+  interface "IHistoryStore" as IHistoryStore <<interface>> {
     +Append(hostId : Guid, point : HistoryPoint) : void
     +Get(hostId : Guid,\nwindow : TimeSpan) : IReadOnlyList~HistoryPoint~
   }
 
-  class InMemoryHistoryStore {
+  class "**InMemoryHistoryStore**" as InMemoryHistoryStore {
     -m_buffers : ConcurrentDictionary~Guid, RingBuffer~
     +Append(hostId, point) : void
     +Get(hostId, window) : IReadOnlyList~HistoryPoint~
   }
 
-  class HistoryPoint {
+  class "**HistoryPoint**" as HistoryPoint {
     +Timestamp : DateTimeOffset
     +Latency : TimeSpan
   }
 
-  class TrafficCounter {
+  class "**TrafficCounter**" as TrafficCounter {
     +Sent : long
     +Received : long
     +Add(result : ProbeResult) : void
     +Reset() : void
   }
 
-  interface IResultExporter {
+  interface "IResultExporter" as IResultExporter <<interface>> {
     +ExportAsync(path : string,\nsnapshots : IReadOnlyList~HostSnapshot~,\nct : CancellationToken) : Task
   }
 
-  class CsvExporter {
+  class "**CsvExporter**" as CsvExporter {
     +ExportAsync(path, snapshots, ct) : Task
   }
 
-  class JsonExporter {
+  class "**JsonExporter**" as JsonExporter {
     +ExportAsync(path, snapshots, ct) : Task
   }
 }
 
-class AppSettings {
+class "**AppSettings**" as AppSettings {
   +IntervalSeconds : int
   +IcmpTimeoutMs : int
   +TcpTimeoutMs : int
@@ -105,19 +117,19 @@ class AppSettings {
   +TrayEnabled : bool
 }
 
-enum ThemeMode {
+enum "ThemeMode" as ThemeMode <<enumeration>> {
   System
   Light
   Dark
 }
 
-class Host {
+class "**Host**" as Host {
   +Id : Guid
   +Name : string
   +Address : string
 }
 
-class ProbeResult {
+class "**ProbeResult**" as ProbeResult {
   +Kind : ProbeKind
   +Success : bool
   +Latency : TimeSpan
@@ -125,7 +137,7 @@ class ProbeResult {
   +BytesReceived : long
 }
 
-class HostSnapshot {
+class "**HostSnapshot**" as HostSnapshot {
   +Host : Host
   +Status : HostStatus
   +Latency : TimeSpan

@@ -1,11 +1,22 @@
 @startuml
-skinparam monochrome true
+skinparam monochrome false
 skinparam shadowing false
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
-skinparam nodesep 40
-skinparam ranksep 60
+skinparam nodesep 55
+skinparam ranksep 80
 skinparam ArrowColor #000000
+skinparam nodeBackgroundColor #FFFFFF
+skinparam nodeBorderColor #000000
+skinparam nodeFontColor #000000
+skinparam artifactBackgroundColor #FFFFFF
+skinparam artifactBorderColor #000000
+skinparam databaseBackgroundColor #FFFFFF
+skinparam databaseBorderColor #000000
+skinparam noteBackgroundColor #FFFFFF
+skinparam noteBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
 
 left to right direction
 title Диаграмма развёртывания LiquidPing
@@ -16,7 +27,9 @@ node "Рабочая станция пользователя\nWindows 11 (22H2+)
 
     artifact "LiquidPing.App.exe" as AppArt
     artifact "LiquidPing.Core.dll" as CoreArt
-    artifact "CommunityToolkit.Mvvm.dll\nMicrosoft.Extensions.DependencyInjection.dll\nSerilog.dll" as LibsArt
+    artifact "CommunityToolkit.Mvvm.dll" as MvvmArt
+    artifact "Microsoft.Extensions.DependencyInjection.dll" as DiArt
+    artifact "Serilog.dll" as SerilogArt
   }
 
   database "Данные приложения\n%AppData%\\LiquidPing\nhosts.json, settings.json, logs" as AppData
@@ -31,13 +44,15 @@ node "DNS-сервер" <<device>> as DnsServer
 node "Узлы сети Интернет\n(сервисы, сайты)" <<device>> as InternetHosts
 
 AppArt --> CoreArt : вызов контрактов
-AppArt --> LibsArt
+AppArt --> MvvmArt
+AppArt --> DiArt
+AppArt --> SerilogArt
 AppArt --> AppData : чтение и запись JSON
 CoreArt --> AppData : журнал
 
 Workstation -- LanSwitch : Ethernet / Wi-Fi 802.11
-LanSwitch -- LanHosts : IPv4, ICMP, ARP
-LanSwitch -- InternetHosts : ICMP, TCP, HTTP(S)
+LanSwitch -- LanHosts : IPv4/ARP
+LanSwitch -- InternetHosts : ICMP/TCP/HTTP(S)
 Workstation ..> DnsServer : DNS-запросы
 
 note bottom of Workstation

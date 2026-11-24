@@ -1,14 +1,26 @@
 @startuml
 set separator none
-skinparam monochrome true
+skinparam monochrome false
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
 skinparam packageStyle rectangle
-skinparam nodesep 25
-skinparam ranksep 40
+skinparam nodesep 30
+skinparam ranksep 45
 skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam noteBackgroundColor #FFFFFF
+skinparam noteBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
 hide empty members
 hide circle
 
@@ -16,7 +28,7 @@ left to right direction
 title Диаграмма классов: модели, проверки и мониторинг
 
 package "LiquidPing.Core.Models" {
-  class Host {
+  class "**Host**" as Host {
     +Id : Guid
     +Name : string
     +Address : string
@@ -28,7 +40,7 @@ package "LiquidPing.Core.Models" {
     +IsValid() : bool
   }
 
-  class HostSnapshot {
+  class "**HostSnapshot**" as HostSnapshot {
     +Host : Host
     +Status : HostStatus
     +Latency : TimeSpan
@@ -37,7 +49,7 @@ package "LiquidPing.Core.Models" {
     +Timestamp : DateTimeOffset
   }
 
-  class ProbeResult {
+  class "**ProbeResult**" as ProbeResult {
     +Kind : ProbeKind
     +Success : bool
     +Latency : TimeSpan
@@ -47,13 +59,13 @@ package "LiquidPing.Core.Models" {
     +Detail : string
   }
 
-  enum ProbeKind {
+  enum "ProbeKind" as ProbeKind <<enumeration>> {
     Icmp
     Tcp
     Http
   }
 
-  enum ProbeError {
+  enum "ProbeError" as ProbeError <<enumeration>> {
     None
     Timeout
     DnsFailure
@@ -62,7 +74,7 @@ package "LiquidPing.Core.Models" {
     HttpError
   }
 
-  enum HostStatus {
+  enum "HostStatus" as HostStatus <<enumeration>> {
     Pending
     Available
     Unstable
@@ -71,59 +83,62 @@ package "LiquidPing.Core.Models" {
 }
 
 package "LiquidPing.Core.Probes" {
-  interface IProbe {
+  interface "IProbe" as IProbe <<interface>> {
     +Kind : ProbeKind
     +ProbeAsync(host : Host,\ntimeout : TimeSpan,\nct : CancellationToken) : Task~ProbeResult~
   }
 
-  class IcmpProbe {
+  class "**IcmpProbe**" as IcmpProbe {
     +Kind : ProbeKind
     +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
   }
 
-  class TcpProbe {
+  class "**TcpProbe**" as TcpProbe {
     +Kind : ProbeKind
     +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
   }
 
-  class HttpProbe {
+  class "**HttpProbe**" as HttpProbe {
     +Kind : ProbeKind
     +ProbeAsync(host, timeout, ct) : Task~ProbeResult~
   }
 }
 
 package "LiquidPing.Core.Monitoring" {
-  interface IMonitoringService {
+  interface "IMonitoringService" as IMonitoringService <<interface>> {
     +HostUpdated : event EventHandler~HostUpdatedEventArgs~
+    +UpdateHosts(hosts : IReadOnlyList~Host~) : void
     +Start(interval : TimeSpan) : void
     +Stop() : void
     +CheckOnceAsync(ct : CancellationToken) : Task
   }
 
-  class MonitoringService {
+  class "**MonitoringService**" as MonitoringService {
     -m_probes : IReadOnlyList~IProbe~
     -m_evaluator : StatusEvaluator
     -m_windows : ConcurrentDictionary~Guid, HostResultWindow~
     +HostUpdated : event EventHandler~HostUpdatedEventArgs~
+    +UpdateHosts(hosts : IReadOnlyList~Host~) : void
     +Start(interval : TimeSpan) : void
     +Stop() : void
     +CheckOnceAsync(ct : CancellationToken) : Task
   }
 
-  class StatusEvaluator {
+  class "**StatusEvaluator**" as StatusEvaluator {
     +WindowSize : int
     +Evaluate(window : HostResultWindow) : HostStatus
   }
 
-  class HostResultWindow {
+  class "**HostResultWindow**" as HostResultWindow {
     +Count : int
     +ConsecutiveFailures : int
     +AddCycle(success : bool) : void
     +PacketLossPercent() : double
   }
 
-  class HostUpdatedEventArgs {
+  class "**HostUpdatedEventArgs**" as HostUpdatedEventArgs {
     +Snapshot : HostSnapshot
+    +Results : IReadOnlyList~ProbeResult~
   }
 }
 
@@ -135,8 +150,8 @@ MonitoringService ..|> IMonitoringService
 MonitoringService o--> "1..*" IProbe : использует
 MonitoringService --> StatusEvaluator
 MonitoringService *--> "1..*" HostResultWindow : ведёт окна
-MonitoringService ..> HostSnapshot : создаёт
-HostUpdatedEventArgs *--> HostSnapshot
+MonitoringService ..> HostUpdatedEventArgs : создаёт
+MonitoringService ..> HostSnapshot
 
 StatusEvaluator ..> HostResultWindow
 HostSnapshot --> Host

@@ -203,7 +203,7 @@ SDD отвечает на вопрос **КАК** будут реализова�
 
 ![Диаграмма компонентов](../uml/img/component-overview.png)
 
-Исходник: [component-overview.puml](../uml/src/component-overview.puml). Диаграмма компонентов показывает два модуля сборки — `LiquidPing.App` (подкомпоненты Views, ViewModels и оболочка) и `LiquidPing.Core` (Monitoring, Probes, Scanning, Discovery, Storage, Support), — тестовый проект `LiquidPing.Core.Tests`, а также внешние компоненты среды исполнения: сетевой стек Windows, DWM, центр уведомлений и файловую систему `%AppData%\LiquidPing`. Точки соединения подписаны контрактами `IMonitoringService`, `IPortScanner`, `ILanDiscovery`, `IHostRepository`, `ISettingsStore`, `IHistoryStore` и `IResultExporter`; направление стрелок совпадает с правилом зависимостей `App → Core`, обратной зависимости нет.
+Исходник: [component-overview.puml](../uml/src/component-overview.puml). Диаграмма компонентов показывает два модуля сборки — `LiquidPing.App` (подкомпоненты Views, ViewModels и оболочка) и `LiquidPing.Core` (Monitoring, Probes, Scanning, Discovery, Storage, Support), — тестовый проект `LiquidPing.Core.Tests`, а также внешние компоненты среды исполнения: сетевой стек Windows, DWM, центр уведомлений и файловую систему `%AppData%\LiquidPing`. Зависимость приложения от ядра подписана контрактами `IMonitoringService`, `IPortScanner`, `ILanDiscovery`, `IHostRepository`, `ISettingsStore` и `IHistoryStore`; направление стрелок совпадает с правилом зависимостей `App → Core`, обратной зависимости нет.
 
 Решение разбивает код на два проекта, чтобы сетевая логика не зависела от WPF и тестировалась отдельно (ADR-0003). Найденный хост добавляется в список через ViewModel: `LanDiscovery` сам в хранилище не пишет, поэтому граница слоёв сохраняется. Проверки скрыты за `IMonitoringService` и `IProbe`, поэтому замена реализации проверки не затрагивает интерфейс.
 - **More Information**: реализует REQ-SEC-001, REQ-FUNC-009, раздел 3.5.4 и 3.5.5 SRS; модульные тесты — проект `LiquidPing.Core.Tests`; решение ADR-0009.
@@ -231,7 +231,7 @@ SDD отвечает на вопрос **КАК** будут реализова�
 
 ![Диаграмма классов: слой представления (MVVM)](../uml/img/class-viewmodels.png)
 
-Исходник: [class-viewmodels.puml](../uml/src/class-viewmodels.puml). Пакет `LiquidPing.App` и контракты ядра: приложение `App`, окно `ShellWindow`, базовый `ViewModelBase` и шесть моделей представления. Каждая модель представления зависит только от контрактов ядра, а не от их реализаций.
+Исходник: [class-viewmodels.puml](../uml/src/class-viewmodels.puml). Классы пространства имён `LiquidPing.App` и контракты ядра: приложение `App`, окно `ShellWindow`, базовый `ViewModelBase` и шесть моделей представления. Каждая модель представления зависит только от контрактов ядра, а не от их реализаций.
 
 ![Диаграмма классов: сервисы приложения](../uml/img/class-services.png)
 
@@ -332,6 +332,7 @@ public interface IProbe
 public interface IMonitoringService
 {
     event EventHandler<HostUpdatedEventArgs> HostUpdated;
+    void UpdateHosts(IReadOnlyList<Host> hosts);
     void Start(TimeSpan interval);
     void Stop();
     Task CheckOnceAsync(CancellationToken ct);

@@ -1,38 +1,49 @@
 @startuml
 set separator none
 left to right direction
-skinparam monochrome true
+skinparam monochrome false
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
 skinparam packageStyle rectangle
-skinparam nodesep 20
-skinparam ranksep 40
+skinparam nodesep 30
+skinparam ranksep 45
 skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam noteBackgroundColor #FFFFFF
+skinparam noteBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
 hide empty members
 hide circle
 
 title Диаграмма классов: слой представления (MVVM)
 
-package "LiquidPing.App" {
-together {
 
-  class App {
+
+  class "**App**" as App {
     -m_services : IServiceProvider
     +OnStartup() : void
     +OnExit() : void
   }
 
-  class ShellWindow {
+  class "**ShellWindow**" as ShellWindow {
     +ViewModel : MainViewModel
   }
 
-  abstract class ViewModelBase {
+  abstract class "**ViewModelBase**" as ViewModelBase {
     #SetProperty~T~(field : T, value : T) : bool
   }
 
-  class MainViewModel {
+  class "**MainViewModel**" as MainViewModel {
     +Hosts : ObservableCollection~HostCardViewModel~
     +IsMonitoring : bool
     +CheckCommand : IAsyncRelayCommand
@@ -42,7 +53,7 @@ together {
     +OpenDetailsCommand : IRelayCommand
   }
 
-  class HostCardViewModel {
+  class "**HostCardViewModel**" as HostCardViewModel {
     +Host : Host
     +Status : HostStatus
     +Latency : TimeSpan
@@ -51,13 +62,13 @@ together {
     +Apply(snapshot : HostSnapshot) : void
   }
 
-  class HostDetailsViewModel {
+  class "**HostDetailsViewModel**" as HostDetailsViewModel {
     +Host : Host
     +History : IReadOnlyList~HistoryPoint~
     +LoadHistory() : void
   }
 
-  class PortsViewModel {
+  class "**PortsViewModel**" as PortsViewModel {
     +Host : Host
     +PortSet : PortSet
     +Results : ObservableCollection~PortResult~
@@ -66,21 +77,20 @@ together {
     +CancelCommand : IRelayCommand
   }
 
-  class LanDiscoveryViewModel {
+  class "**LanDiscoveryViewModel**" as LanDiscoveryViewModel {
     +Hosts : ObservableCollection~LanHostInfo~
     +IsScanning : bool
     +ScanCommand : IAsyncRelayCommand
     +AddToMonitoringCommand : IAsyncRelayCommand
   }
 
-  class SettingsViewModel {
+  class "**SettingsViewModel**" as SettingsViewModel {
     +Settings : AppSettings
     +SaveCommand : IAsyncRelayCommand
     +ApplyTheme(theme : ThemeMode) : void
   }
 
-}
-}
+
 
 package "Контракты LiquidPing.Core" {
   interface IMonitoringService
@@ -92,9 +102,6 @@ package "Контракты LiquidPing.Core" {
 }
 
 App ..> ShellWindow
-App ..> IHostRepository
-App ..> ISettingsStore
-App ..> IMonitoringService
 
 ShellWindow --> MainViewModel
 
