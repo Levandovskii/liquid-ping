@@ -30,10 +30,10 @@ public sealed class HttpProbe : IProbe
     public async Task<ProbeResult> ProbeAsync(Host host, TimeSpan timeout, CancellationToken ct)
     {
         var stopwatch = Stopwatch.StartNew();
-        var uri = BuildUri(host);
 
         try
         {
+            var uri = BuildUri(host);
             using var request = new HttpRequestMessage(HttpMethod.Get, uri);
             using var timeoutSource = CancellationTokenSource.CreateLinkedTokenSource(ct);
             timeoutSource.CancelAfter(timeout);
