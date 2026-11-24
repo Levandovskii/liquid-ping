@@ -1,0 +1,47 @@
+@startuml
+skinparam monochrome false
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam nodesep 45
+skinparam ranksep 65
+skinparam ArrowColor #000000
+skinparam nodeBackgroundColor #FFFFFF
+skinparam nodeBorderColor #000000
+skinparam nodeFontColor #000000
+skinparam artifactBackgroundColor #FFFFFF
+skinparam artifactBorderColor #000000
+skinparam databaseBackgroundColor #FFFFFF
+skinparam databaseBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+
+title Диаграмма развёртывания LiquidPing
+
+node "Рабочая станция пользователя\nWindows 11 (22H2+), x64" <<device>> as Workstation {
+
+  node "Среда исполнения .NET 10\n(self-contained)" <<execution environment>> as Dotnet {
+
+    artifact "LiquidPing.App.exe" as AppArt
+    artifact "LiquidPing.Core.dll" as CoreArt
+    artifact "Сторонние библиотеки\nCommunityToolkit.Mvvm\nMicrosoft.Extensions.DI\nSerilog" as LibsArt
+  }
+
+  database "Данные приложения\n%AppData%\\LiquidPing\nhosts.json, settings.json, logs" as AppData
+}
+
+node "Коммутатор или точка доступа\nлокальной сети" <<device>> as LanSwitch
+node "Хосты локальной сети\n(IPv4-подсети)" <<device>> as LanHosts
+node "DNS-сервер" <<device>> as DnsServer
+node "Узлы сети Интернет\n(сервисы, сайты)" <<device>> as InternetHosts
+
+AppArt --> CoreArt : вызов контрактов
+AppArt --> LibsArt
+AppArt --> AppData : JSON
+CoreArt --> AppData : журнал
+
+Workstation -- LanSwitch : Ethernet
+LanSwitch -- LanHosts : IPv4/ARP
+LanSwitch -- InternetHosts : ICMP/TCP/HTTP(S)
+Workstation ..> DnsServer : DNS
+@enduml

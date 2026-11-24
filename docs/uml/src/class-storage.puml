@@ -1,0 +1,165 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome false
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam nodesep 28
+skinparam ranksep 42
+skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+hide empty members
+hide circle
+
+title Диаграмма классов: хранение данных и вспомогательные сервисы
+
+package "LiquidPing.Core" {
+  package "Models" {
+    class "**Host**" as Host {
+      +Id : Guid
+      +Name : string
+      +Address : string
+    }
+
+    class "**ProbeResult**" as ProbeResult {
+      +Kind : ProbeKind
+      +Success : bool
+      +Latency : TimeSpan
+      +BytesSent : long
+      +BytesReceived : long
+    }
+
+    class "**HostSnapshot**" as HostSnapshot {
+      +Host : Host
+      +Status : HostStatus
+      +Latency : TimeSpan
+      +PacketLoss : double
+    }
+
+    class "**AppSettings**" as AppSettings {
+      +IntervalSeconds : int
+      +IcmpTimeoutMs : int
+      +TcpTimeoutMs : int
+      +HttpTimeoutMs : int
+      +PortTimeoutMs : int
+      +ChartWindowMinutes : int
+      +Theme : ThemeMode
+      +Language : string
+      +NotificationsEnabled : bool
+      +TrayEnabled : bool
+    }
+
+    enum "ThemeMode" as ThemeMode <<enumeration>> {
+      System
+      Light
+      Dark
+    }
+  }
+
+  package "Storage" {
+    interface "IHostRepository" as IHostRepository <<interface>> {
+      +LoadAsync(ct : CancellationToken) : Task<IReadOnlyList<Host>>
+      +SaveAsync(hosts : IReadOnlyList<Host>, ct : CancellationToken) : Task
+    }
+
+    class "**JsonHostRepository**" as JsonHostRepository {
+      -m_store : JsonFileStore
+      +LoadAsync(ct) : Task<IReadOnlyList<Host>>
+      +SaveAsync(hosts, ct) : Task
+    }
+
+    interface "ISettingsStore" as ISettingsStore <<interface>> {
+      +LoadAsync(ct : CancellationToken) : Task<AppSettings>
+      +SaveAsync(settings : AppSettings, ct : CancellationToken) : Task
+    }
+
+    class "**JsonSettingsStore**" as JsonSettingsStore {
+      -m_store : JsonFileStore
+      +LoadAsync(ct) : Task<AppSettings>
+      +SaveAsync(settings, ct) : Task
+    }
+
+    class "**JsonFileStore**" as JsonFileStore {
+      +ReadAsync<T>(path : string, ct : CancellationToken) : Task<T>
+      +WriteAsync<T>(path : string, value : T, ct : CancellationToken) : Task
+    }
+
+    class "**AppPaths**" as AppPaths {
+      +{static} DataDirectory : string
+      +{static} HostsFile : string
+      +{static} SettingsFile : string
+      +{static} LogDirectory : string
+    }
+
+    class "**DefaultHosts**" as DefaultHosts {
+      +{static} Create() : IReadOnlyList<Host>
+    }
+  }
+
+  package "Support" {
+    interface "IHistoryStore" as IHistoryStore <<interface>> {
+      +Append(hostId : Guid, point : HistoryPoint) : void
+      +Get(hostId : Guid, window : TimeSpan) : IReadOnlyList<HistoryPoint>
+    }
+
+    class "**InMemoryHistoryStore**" as InMemoryHistoryStore {
+      -m_buffers : ConcurrentDictionary<Guid, Queue<HistoryPoint>>
+      +Append(hostId, point) : void
+      +Get(hostId, window) : IReadOnlyList<HistoryPoint>
+    }
+
+    class "**HistoryPoint**" as HistoryPoint {
+      +Timestamp : DateTimeOffset
+      +Latency : TimeSpan
+    }
+
+    class "**TrafficCounter**" as TrafficCounter {
+      +Sent : long
+      +Received : long
+      +Add(result : ProbeResult) : void
+      +Reset() : void
+    }
+
+    interface "IResultExporter" as IResultExporter <<interface>> {
+      +ExportAsync(path : string, snapshots : IReadOnlyList<HostSnapshot>, ct : CancellationToken) : Task
+    }
+
+    class "**CsvExporter**" as CsvExporter {
+      +ExportAsync(path, snapshots, ct) : Task
+    }
+
+    class "**JsonExporter**" as JsonExporter {
+      +ExportAsync(path, snapshots, ct) : Task
+    }
+  }
+}
+
+JsonHostRepository ..|> IHostRepository
+JsonSettingsStore ..|> ISettingsStore
+JsonHostRepository "1" -- "1" JsonFileStore
+JsonSettingsStore "1" -- "1" JsonFileStore
+JsonFileStore ..> AppPaths
+DefaultHosts ..> Host : создаёт
+AppSettings ..> ThemeMode
+
+InMemoryHistoryStore ..|> IHistoryStore
+IHistoryStore "1" *-- "0..*" HistoryPoint : хранит
+TrafficCounter ..> ProbeResult : считает
+CsvExporter ..|> IResultExporter
+JsonExporter ..|> IResultExporter
+IResultExporter ..> HostSnapshot
+IHostRepository ..> Host
+ISettingsStore ..> AppSettings
+@enduml

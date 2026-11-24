@@ -1,0 +1,63 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome false
+skinparam shadowing false
+skinparam componentStyle uml2
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam nodesep 35
+skinparam ranksep 55
+skinparam ArrowColor #000000
+skinparam componentBackgroundColor #FFFFFF
+skinparam componentBorderColor #000000
+skinparam componentFontColor #000000
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+hide stereotype
+
+title Диаграмма компонентов LiquidPing
+
+package "Рабочая станция пользователя" {
+  component "LiquidPing.App" as App {
+    component "Views\n(XAML)" as Views
+    component "ViewModels\n(MVVM)" as ViewModels
+    component "Оболочка\nтемы, локализация,\nтрей, уведомления" as Shell
+  }
+
+  component "LiquidPing.Core" as Core {
+    component "Monitoring" as Monitoring
+    component "Probes\nICMP, TCP, HTTP" as Probes
+    component "Scanning\nPortScanner" as Scanning
+    component "Discovery\nLanDiscovery, OUI, ARP" as Discovery
+    component "Storage\nHostRepository,\nSettingsStore" as Storage
+    component "Support\nHistory, Traffic,\nExport" as Support
+  }
+
+  component "LiquidPing.Core.Tests" as Tests
+}
+
+package "Среда исполнения" {
+  component "DWM" as Dwm
+  component "Центр уведомлений\nWindows" as Toast
+  component "Сетевой стек Windows\nWinsock, DNS, IP Helper API" as NetStack
+  component "Файловая система\n%AppData%\\LiquidPing" as FileSystem
+}
+
+actor "Пользователь" as User
+
+User --> Views
+App ..> Core
+Tests ..> Core : тесты
+
+Views --> ViewModels
+Monitoring --> Probes
+Discovery --> Probes
+Shell ..> Dwm : backdrop
+Shell ..> Toast : уведомления
+Probes ..> NetStack : ICMP, TCP, HTTP(S), DNS
+Discovery ..> NetStack : ICMP, ARP
+Storage ..> FileSystem : hosts.json, settings.json
+@enduml

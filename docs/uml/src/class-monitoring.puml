@@ -1,0 +1,163 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome false
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam nodesep 28
+skinparam ranksep 42
+skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+hide empty members
+hide circle
+
+title Диаграмма классов: модели, проверки и мониторинг
+
+package "LiquidPing.Core" {
+  package "Models" {
+    class "**Host**" as Host {
+      +Id : Guid
+      +Name : string
+      +Address : string
+      +TcpPort : int
+      +HttpUrl : string
+      +UseIcmp : bool
+      +UseTcp : bool
+      +UseHttp : bool
+      +IsValid() : bool
+    }
+
+    class "**HostSnapshot**" as HostSnapshot {
+      +Host : Host
+      +Status : HostStatus
+      +Latency : TimeSpan
+      +PacketLoss : double
+      +ResolvedAddress : IPAddress
+      +Timestamp : DateTimeOffset
+    }
+
+    class "**ProbeResult**" as ProbeResult {
+      +Kind : ProbeKind
+      +Success : bool
+      +Latency : TimeSpan
+      +Error : ProbeError
+      +BytesSent : long
+      +BytesReceived : long
+      +Detail : string
+    }
+
+    enum "ProbeKind" as ProbeKind <<enumeration>> {
+      Icmp
+      Tcp
+      Http
+    }
+
+    enum "ProbeError" as ProbeError <<enumeration>> {
+      None
+      Timeout
+      DnsFailure
+      Refused
+      Unreachable
+      HttpError
+    }
+
+    enum "HostStatus" as HostStatus <<enumeration>> {
+      Pending
+      Available
+      Unstable
+      Unavailable
+    }
+  }
+
+  package "Probes" {
+    interface "IProbe" as IProbe <<interface>> {
+      +Kind : ProbeKind
+      +ProbeAsync(host : Host, timeout : TimeSpan, ct : CancellationToken) : Task<ProbeResult>
+    }
+
+    class "**IcmpProbe**" as IcmpProbe {
+      +Kind : ProbeKind
+      +ProbeAsync(host, timeout, ct) : Task<ProbeResult>
+    }
+
+    class "**TcpProbe**" as TcpProbe {
+      +Kind : ProbeKind
+      +ProbeAsync(host, timeout, ct) : Task<ProbeResult>
+    }
+
+    class "**HttpProbe**" as HttpProbe {
+      +Kind : ProbeKind
+      +ProbeAsync(host, timeout, ct) : Task<ProbeResult>
+    }
+  }
+
+  package "Monitoring" {
+    interface "IMonitoringService" as IMonitoringService <<interface>> {
+      +HostUpdated : event EventHandler<HostUpdatedEventArgs>
+      +UpdateHosts(hosts : IReadOnlyList<Host>) : void
+      +Start(interval : TimeSpan) : void
+      +Stop() : void
+      +CheckOnceAsync(ct : CancellationToken) : Task
+    }
+
+    class "**MonitoringService**" as MonitoringService {
+      -m_probes : IReadOnlyList<IProbe>
+      -m_evaluator : StatusEvaluator
+      -m_windows : ConcurrentDictionary<Guid, HostResultWindow>
+      +HostUpdated : event EventHandler<HostUpdatedEventArgs>
+      +UpdateHosts(hosts : IReadOnlyList<Host>) : void
+      +Start(interval : TimeSpan) : void
+      +Stop() : void
+      +CheckOnceAsync(ct : CancellationToken) : Task
+    }
+
+    class "**StatusEvaluator**" as StatusEvaluator {
+      +WindowSize : int
+      +Evaluate(window : HostResultWindow) : HostStatus
+    }
+
+    class "**HostResultWindow**" as HostResultWindow {
+      +Count : int
+      +ConsecutiveFailures : int
+      +AddCycle(success : bool) : void
+      +PacketLossPercent() : double
+    }
+
+    class "**HostUpdatedEventArgs**" as HostUpdatedEventArgs {
+      +Snapshot : HostSnapshot
+      +Results : IReadOnlyList<ProbeResult>
+    }
+  }
+}
+
+IcmpProbe ..|> IProbe
+TcpProbe ..|> IProbe
+HttpProbe ..|> IProbe
+
+MonitoringService ..|> IMonitoringService
+MonitoringService "1" o-- "1..*" IProbe : использует
+MonitoringService "1" -- "1" StatusEvaluator
+MonitoringService "1" *-- "1..*" HostResultWindow : ведёт
+MonitoringService ..> HostSnapshot
+MonitoringService ..> HostUpdatedEventArgs
+HostUpdatedEventArgs "1" *-- "1" HostSnapshot : содержит
+
+StatusEvaluator ..> HostResultWindow
+HostSnapshot "*" -- "1" Host
+HostSnapshot ..> HostStatus
+ProbeResult ..> ProbeKind
+ProbeResult ..> ProbeError
+IProbe ..> ProbeResult
+@enduml

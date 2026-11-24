@@ -1,0 +1,112 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome false
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 11
+skinparam packageStyle rectangle
+skinparam nodesep 28
+skinparam ranksep 42
+skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam classAttributeFontStyle normal
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+hide empty members
+hide circle
+
+title Диаграмма классов: сервисы приложения
+
+package "LiquidPing.App" {
+  package "Services" {
+    class "**MonitoringCoordinator**" as MonitoringCoordinator {
+      -m_monitoring : IMonitoringService
+      -m_channel : Channel<HostSnapshot>
+      +Started : event EventHandler
+      +BatchReady : event EventHandler<BatchEventArgs>
+      +Start(interval : TimeSpan) : void
+      +Stop() : void
+    }
+
+    class "**NavigationService**" as NavigationService {
+      +ShowDetails(host : Host) : void
+      +ShowPorts(host : Host) : void
+      +ShowSettings() : void
+      +ShowLanDiscovery() : void
+    }
+
+    class "**NotificationService**" as NotificationService {
+      +IsEnabled : bool
+      +Notify(args : HostUpdatedEventArgs) : void
+    }
+
+    class "**ThemeService**" as ThemeService {
+      +Current : ThemeMode
+      +Apply(theme : ThemeMode) : void
+    }
+
+    class "**LocalizationService**" as LocalizationService {
+      +Language : string
+      +Apply(language : string) : void
+      +Get(key : string) : string
+    }
+
+    class "**TrayService**" as TrayService {
+      +IsEnabled : bool
+      +Show() : void
+      +Hide() : void
+    }
+
+    interface "IDialogService" as IDialogService <<interface>> {
+      +ConfirmAsync(message : string) : Task<bool>
+      +ShowError(message : string) : Task
+    }
+
+    class "**DialogService**" as DialogService {
+      +ConfirmAsync(message : string) : Task<bool>
+      +ShowError(message : string) : Task
+    }
+  }
+
+  package "ViewModels" {
+    class "**MainViewModel**" as MainViewModel {
+      +Hosts : ObservableCollection<HostCardViewModel>
+      +IsMonitoring : bool
+    }
+
+    class "**SettingsViewModel**" as SettingsViewModel {
+      +Settings : AppSettings
+    }
+  }
+}
+
+package "LiquidPing.Core" {
+  package "Monitoring" {
+    interface "IMonitoringService" as IMonitoringService <<interface>> {
+      +HostUpdated : event EventHandler<HostUpdatedEventArgs>
+    }
+
+    class "**HostUpdatedEventArgs**" as HostUpdatedEventArgs {
+      +Snapshot : HostSnapshot
+    }
+  }
+}
+
+MonitoringCoordinator "1" -- "1" IMonitoringService : вызывает
+MonitoringCoordinator "1" -- "1" NotificationService
+NotificationService ..> HostUpdatedEventArgs
+NavigationService ..> MainViewModel : открывает
+MainViewModel ..> MonitoringCoordinator
+SettingsViewModel ..> ThemeService : применяет
+SettingsViewModel ..> LocalizationService : переводит
+DialogService ..|> IDialogService
+TrayService ..> MainViewModel : восстанавливает
+@enduml
