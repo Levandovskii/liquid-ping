@@ -1,0 +1,73 @@
+@startuml
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actorStyle stickman
+skinparam nodesep 25
+skinparam ranksep 65
+
+skinparam usecase {
+    BackgroundColor #FFFFFF
+    BorderColor #334E96
+}
+
+skinparam actor {
+    BackgroundColor #FFFFFF
+    BorderColor #334E96
+}
+
+skinparam rectangle<<actor>> {
+    BackgroundColor #FFFFFF
+    BorderColor #334E96
+}
+
+title LiquidPing: диаграмма вариантов использования
+
+actor "Пользователь" as User
+rectangle "Таймер" <<actor>> as Timer
+
+rectangle "LiquidPing main" {
+    usecase "UC-09\nЭкспортировать результаты" as UC09
+    usecase "UC-11\nСвернуть в системный трей" as UC11
+    usecase "UC-02\nЗапустить и остановить\nмониторинг" as UC02
+    usecase "UC-04\nПросмотреть детали узла\nи историю" as UC04
+
+    usecase "UC-01\nУправлять списком узлов" as UC01
+    usecase "UC-08\nНастроить приложение" as UC08
+    usecase "UC-05\nСканировать порты узла" as UC05
+
+    usecase "UC-06\nОбнаружить хосты\nв локальной сети" as UC06
+    usecase "UC-07\nДобавить найденный хост\nв мониторинг" as UC07
+    usecase "UC-03\nВыполнить цикл проверок" as UC03
+
+    usecase "UC-12\nПроверить введённые данные" as UC12
+    usecase "UC-10\nПоказать уведомление\nо смене статуса" as UC10
+}
+
+rectangle "Сетевой стек\nWindows" <<actor>> as Net
+rectangle "Центр уведомлений\nWindows" <<actor>> as Toast
+
+User --> UC09
+User --> UC11
+User --> UC02
+User --> UC04
+User --> UC01
+User --> UC08
+User --> UC05
+User --> UC06
+User --> UC07
+User --> UC03
+Timer --> UC03
+
+UC01 ..> UC12 : <<include>>
+UC08 ..> UC12 : <<include>>
+UC05 ..> UC12 : <<include>>
+
+UC07 .up.> UC06 : <<extend>>
+UC03 <.. UC10 : <<extend>>
+
+UC05 ---> Net
+UC10 --> Toast
+UC06 ---> Net
+UC03 ---> Net
+@enduml

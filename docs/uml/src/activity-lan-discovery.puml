@@ -1,0 +1,63 @@
+@startuml
+skinparam monochrome true
+skinparam shadowing false
+skinparam defaultTextAlignment center
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #000000
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #000000
+skinparam ArrowColor #000000
+skinparam NoteBackgroundColor #FFFFFF
+skinparam NoteBorderColor #000000
+
+title Обнаружение хостов в локальной сети и добавление в мониторинг (UC-06, UC-07)
+
+start
+:Пользователь нажал «Сканировать сеть»;
+:Определить IPv4-подсети активных адаптеров;
+
+if () then ([подсети не найдены])
+    :Показать сообщение «Нет активной сети»;
+    stop
+else ([подсети найдены])
+endif
+
+repeat
+    :Взять очередную подсеть;
+    if () then ([префикс короче /22])
+        :Показать сообщение\n«Подсеть слишком велика»;
+    else ([префикс /22 или длиннее])
+        :Сформировать адреса подсети;
+        :Проверить адреса по ICMP\n(до 64 потоков, обновление прогресса);
+        note left
+            Кнопка «Отмена» доступна
+            в любой момент проверки
+        end note
+
+        if () then ([нажата «Отмена»])
+            :Остановить запуск новых проверок;
+        else ([проверка завершена])
+            :Прочитать ARP-таблицу подсети;
+            if () then ([есть ARP-запись\nбез ответа ICMP])
+                :Добавить «тихий» хост\n(задержка не определена);
+            else ([все записи учтены])
+            endif
+            :Определить производителя\nпо MAC (OUI);
+            :Определить имя хоста\n(reverse DNS, параллельно);
+        endif
+    endif
+repeat while () is ([не отменено и есть ещё подсети]) not ([отменено или подсети закончились])
+
+:Показать список найденных хостов;
+
+while () is ([выбран хост и нажата «В мониторинг»])
+    if () then ([хост уже в списке])
+        :Показать сообщение «Уже в списке»;
+    else ([хоста нет в списке])
+        :Добавить хост в репозиторий;
+        :Отобразить хост на главном экране\nсо статусом Pending;
+    endif
+endwhile ([завершена работа со списком])
+
+stop
+@enduml
