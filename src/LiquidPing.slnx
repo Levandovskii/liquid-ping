@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="LiquidPing.App/LiquidPing.App.csproj" />
+  <Project Path="LiquidPing.Core.Tests/LiquidPing.Core.Tests.csproj" />
+  <Project Path="LiquidPing.Core/LiquidPing.Core.csproj" />
+</Solution>
