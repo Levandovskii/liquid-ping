@@ -15,9 +15,10 @@ skinparam packageBorderColor #000000
 skinparam noteBackgroundColor #FFFFFF
 skinparam noteBorderColor #000000
 skinparam roundCorner 0
+skinparam linetype polyline
 hide stereotype
 
-left to right direction
+top to bottom direction
 title Диаграмма компонентов LiquidPing
 
 package "Рабочая станция пользователя" {
@@ -41,9 +42,9 @@ package "Рабочая станция пользователя" {
 }
 
 package "Среда исполнения" {
-  component "Сетевой стек Windows\nWinsock, DNS, IP Helper API" as NetStack
   component "DWM" as Dwm
   component "Центр уведомлений\nWindows" as Toast
+  component "Сетевой стек Windows\nWinsock, DNS, IP Helper API" as NetStack
   component "Файловая система\n%AppData%\\LiquidPing" as FileSystem
 }
 

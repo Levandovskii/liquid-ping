@@ -1,13 +1,14 @@
 @startuml
 set separator none
+left to right direction
 skinparam monochrome false
 skinparam shadowing false
 skinparam classAttributeIconSize 0
 skinparam defaultFontName "DejaVu Sans"
 skinparam defaultFontSize 11
 skinparam packageStyle rectangle
-skinparam nodesep 30
-skinparam ranksep 45
+skinparam nodesep 28
+skinparam ranksep 42
 skinparam ArrowColor #000000
 skinparam classBackgroundColor #FFFFFF
 skinparam classBorderColor #000000
@@ -17,124 +18,127 @@ skinparam classAttributeFontStyle normal
 skinparam stereotypeCBackgroundColor #FFFFFF
 skinparam packageBackgroundColor #FFFFFF
 skinparam packageBorderColor #000000
-skinparam noteBackgroundColor #FFFFFF
-skinparam noteBorderColor #000000
 skinparam linetype ortho
 skinparam roundCorner 0
 hide empty members
 hide circle
 
-left to right direction
 title Диаграмма классов: сканирование портов и обнаружение хостов
 
-package "LiquidPing.Core.Scanning" {
-  interface "IPortScanner" as IPortScanner <<interface>> {
-    +ScanAsync(host : Host,\nports : PortSet,\nprogress : IProgress~PortScanProgress~,\nct : CancellationToken) : Task~PortScanResult~
+package "LiquidPing.Core" {
+  package "Models" {
+    class "**Host**" as Host {
+      +Id : Guid
+      +Name : string
+      +Address : string
+    }
   }
 
-  class "**PortScanner**" as PortScanner {
-    -m_semaphore : SemaphoreSlim
-    +ScanAsync(host, ports, progress, ct) : Task~PortScanResult~
+  package "Probes" {
+    interface "IProbe" as IProbe <<interface>> {
+      +ProbeAsync(host : Host, timeout : TimeSpan, ct : CancellationToken) : Task<ProbeResult>
+    }
   }
 
-  class "**PortSet**" as PortSet {
-    +Label : string
-    +Ports : IReadOnlyList~int~
-    +{static} Popular() : PortSet
-    +{static} FromRange(from : int, to : int) : PortSet
-    +{static} Parse(text : string) : PortSet
+  package "Scanning" {
+    interface "IPortScanner" as IPortScanner <<interface>> {
+      +ScanAsync(host : Host, ports : PortSet, progress : IProgress<PortScanProgress>, ct : CancellationToken) : Task<PortScanResult>
+    }
+
+    class "**PortScanner**" as PortScanner {
+      -m_semaphore : SemaphoreSlim
+      +ScanAsync(host, ports, progress, ct) : Task<PortScanResult>
+    }
+
+    class "**PortSet**" as PortSet {
+      +Label : string
+      +Ports : IReadOnlyList<int>
+      +{static} Popular() : PortSet
+      +{static} FromRange(from : int, to : int) : PortSet
+      +{static} Parse(text : string) : PortSet
+    }
+
+    class "**PortResult**" as PortResult {
+      +Port : int
+      +State : PortState
+      +Latency : TimeSpan
+      +ServiceName : string
+    }
+
+    class "**PortScanResult**" as PortScanResult {
+      +Host : Host
+      +Results : IReadOnlyList<PortResult>
+      +Cancelled : bool
+      +Duration : TimeSpan
+    }
+
+    class "**PortScanProgress**" as PortScanProgress {
+      +Completed : int
+      +Total : int
+    }
+
+    enum "PortState" as PortState <<enumeration>> {
+      Open
+      Closed
+      Filtered
+    }
   }
 
-  class "**PortResult**" as PortResult {
-    +Port : int
-    +State : PortState
-    +Latency : TimeSpan
-    +ServiceName : string
+  package "Discovery" {
+    interface "ILanDiscovery" as ILanDiscovery <<interface>> {
+      +DiscoverAsync(progress : IProgress<LanScanProgress>, ct : CancellationToken) : Task<IReadOnlyList<LanHostInfo>>
+    }
+
+    class "**LanDiscovery**" as LanDiscovery {
+      -m_probe : IProbe
+      -m_arp : IArpTableReader
+      -m_oui : IOuiLookup
+      -m_names : IHostNameResolver
+      +DiscoverAsync(progress, ct) : Task<IReadOnlyList<LanHostInfo>>
+    }
+
+    class "**LanHostInfo**" as LanHostInfo {
+      +Address : IPAddress
+      +Latency : TimeSpan
+      +HostName : string
+      +MacAddress : PhysicalAddress
+      +Vendor : string
+    }
+
+    class "**LanScanProgress**" as LanScanProgress {
+      +Completed : int
+      +Total : int
+    }
+
+    interface "IOuiLookup" as IOuiLookup <<interface>> {
+      +ResolveVendor(mac : PhysicalAddress) : string
+    }
+
+    class "**OuiVendorResolver**" as OuiVendorResolver {
+      +ResolveVendor(mac : PhysicalAddress) : string
+    }
+
+    interface "IArpTableReader" as IArpTableReader <<interface>> {
+      +Read() : IReadOnlyList<ArpEntry>
+    }
+
+    class "**ArpTableReader**" as ArpTableReader {
+      +Read() : IReadOnlyList<ArpEntry>
+    }
+
+    class "**ArpEntry**" as ArpEntry {
+      +Address : IPAddress
+      +MacAddress : PhysicalAddress
+    }
+
+    interface "IHostNameResolver" as IHostNameResolver <<interface>> {
+      +ResolveAsync(address : IPAddress, ct : CancellationToken) : Task<string>
+    }
+
+    class "**DnsHostNameResolver**" as DnsHostNameResolver {
+      +ResolveAsync(address, ct) : Task<string>
+    }
   }
-
-  class "**PortScanResult**" as PortScanResult {
-    +Host : Host
-    +Results : IReadOnlyList~PortResult~
-    +Cancelled : bool
-    +Duration : TimeSpan
-  }
-
-  class "**PortScanProgress**" as PortScanProgress {
-    +Completed : int
-    +Total : int
-  }
-
-  enum "PortState" as PortState <<enumeration>> {
-    Open
-    Closed
-    Filtered
-  }
-}
-
-package "LiquidPing.Core.Discovery" {
-  interface "ILanDiscovery" as ILanDiscovery <<interface>> {
-    +DiscoverAsync(progress : IProgress~LanScanProgress~,\nct : CancellationToken) : Task~IReadOnlyList~LanHostInfo~~
-  }
-
-  class "**LanDiscovery**" as LanDiscovery {
-    -m_probe : IProbe
-    -m_arp : IArpTableReader
-    -m_oui : IOuiLookup
-    -m_names : IHostNameResolver
-    +DiscoverAsync(progress, ct) : Task~IReadOnlyList~LanHostInfo~~
-  }
-
-  class "**LanHostInfo**" as LanHostInfo {
-    +Address : IPAddress
-    +Latency : TimeSpan
-    +HostName : string
-    +MacAddress : PhysicalAddress
-    +Vendor : string
-  }
-
-  class "**LanScanProgress**" as LanScanProgress {
-    +Completed : int
-    +Total : int
-  }
-
-  interface "IOuiLookup" as IOuiLookup <<interface>> {
-    +ResolveVendor(mac : PhysicalAddress) : string
-  }
-
-  class "**OuiVendorResolver**" as OuiVendorResolver {
-    +ResolveVendor(mac : PhysicalAddress) : string
-  }
-
-  interface "IArpTableReader" as IArpTableReader <<interface>> {
-    +Read() : IReadOnlyList~ArpEntry~
-  }
-
-  class "**ArpTableReader**" as ArpTableReader {
-    +Read() : IReadOnlyList~ArpEntry~
-  }
-
-  class "**ArpEntry**" as ArpEntry {
-    +Address : IPAddress
-    +MacAddress : PhysicalAddress
-  }
-
-  interface "IHostNameResolver" as IHostNameResolver <<interface>> {
-    +ResolveAsync(address : IPAddress,\nct : CancellationToken) : Task~string~
-  }
-
-  class "**DnsHostNameResolver**" as DnsHostNameResolver {
-    +ResolveAsync(address, ct) : Task~string~
-  }
-}
-
-class "**Host**" as Host {
-  +Id : Guid
-  +Name : string
-  +Address : string
-}
-
-interface "IProbe" as IProbe <<interface>> {
-  +ProbeAsync(host : Host, timeout : TimeSpan,\nct : CancellationToken) : Task~ProbeResult~
 }
 
 PortScanner ..|> IPortScanner
@@ -142,20 +146,19 @@ PortScanner ..> PortSet
 PortScanner ..> PortResult
 PortScanner ..> PortScanResult
 PortScanner ..> PortScanProgress
-PortScanResult *--> PortResult
+PortScanResult *-- PortResult
 PortResult ..> PortState
+IPortScanner ..> Host
 
 LanDiscovery ..|> ILanDiscovery
-LanDiscovery --> IProbe
-LanDiscovery --> IArpTableReader
-LanDiscovery --> IOuiLookup
-LanDiscovery --> IHostNameResolver
+LanDiscovery -- IProbe
+LanDiscovery -- IArpTableReader
+LanDiscovery -- IOuiLookup
+LanDiscovery -- IHostNameResolver
 LanDiscovery ..> LanHostInfo
 LanDiscovery ..> LanScanProgress
 OuiVendorResolver ..|> IOuiLookup
 ArpTableReader ..|> IArpTableReader
 ArpTableReader ..> ArpEntry
 DnsHostNameResolver ..|> IHostNameResolver
-
-LanHostInfo ..> ArpEntry : MAC из ARP
-IPortScanner ..> Host
+@enduml

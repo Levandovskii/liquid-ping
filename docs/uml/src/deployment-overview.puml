@@ -15,8 +15,8 @@ skinparam databaseBackgroundColor #FFFFFF
 skinparam databaseBorderColor #000000
 skinparam noteBackgroundColor #FFFFFF
 skinparam noteBorderColor #000000
-skinparam linetype ortho
 skinparam roundCorner 0
+skinparam linetype polyline
 
 left to right direction
 title Диаграмма развёртывания LiquidPing
@@ -55,9 +55,4 @@ LanSwitch -- LanHosts : IPv4/ARP
 LanSwitch -- InternetHosts : ICMP/TCP/HTTP(S)
 Workstation ..> DnsServer : DNS-запросы
 
-note bottom of Workstation
-  Поставка: переносимый архив self-contained win-x64,
-  права администратора не требуются (ADR-0007).
-  Внешние связи ограничены сетью и файловой системой.
-end note
 @enduml
