@@ -1,0 +1,98 @@
+@startuml
+set separator none
+left to right direction
+skinparam monochrome false
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "DejaVu Sans"
+skinparam defaultFontSize 12
+skinparam packageStyle rectangle
+skinparam nodesep 20
+skinparam ranksep 35
+skinparam ArrowColor #000000
+skinparam classBackgroundColor #FFFFFF
+skinparam classBorderColor #000000
+skinparam classFontColor #000000
+skinparam classFontStyle bold
+skinparam stereotypeCBackgroundColor #FFFFFF
+skinparam packageBackgroundColor #FFFFFF
+skinparam packageBorderColor #000000
+skinparam linetype ortho
+skinparam roundCorner 0
+hide members
+hide circle
+
+title Обзорная диаграмма классов LiquidPing
+
+package "LiquidPing.Core" {
+  class "**Host**" as Host
+  class "**HostSnapshot**" as HostSnapshot
+  class "**ProbeResult**" as ProbeResult
+  class "**AppSettings**" as AppSettings
+  interface "IProbe" as IProbe <<interface>>
+  class "**MonitoringService**" as MonitoringService
+  interface "IMonitoringService" as IMonitoringService <<interface>>
+  class "**StatusEvaluator**" as StatusEvaluator
+  interface "IPortScanner" as IPortScanner <<interface>>
+  class "**PortScanner**" as PortScanner
+  class "**PortSet**" as PortSet
+  interface "ILanDiscovery" as ILanDiscovery <<interface>>
+  class "**LanDiscovery**" as LanDiscovery
+  class "**LanHostInfo**" as LanHostInfo
+  interface "IHostRepository" as IHostRepository <<interface>>
+  class "**JsonHostRepository**" as JsonHostRepository
+  interface "ISettingsStore" as ISettingsStore <<interface>>
+  class "**JsonSettingsStore**" as JsonSettingsStore
+  interface "IHistoryStore" as IHistoryStore <<interface>>
+  class "**InMemoryHistoryStore**" as InMemoryHistoryStore
+  interface "IResultExporter" as IResultExporter <<interface>>
+  class "**CsvExporter**" as CsvExporter
+  class "**JsonExporter**" as JsonExporter
+}
+
+package "LiquidPing.App" {
+  class "**App**" as App
+  class "**ShellWindow**" as ShellWindow
+  abstract class "**ViewModelBase**" as ViewModelBase
+  class "**MainViewModel**" as MainViewModel
+  class "**HostCardViewModel**" as HostCardViewModel
+  class "**PortsViewModel**" as PortsViewModel
+  class "**LanDiscoveryViewModel**" as LanDiscoveryViewModel
+  class "**SettingsViewModel**" as SettingsViewModel
+  class "**MonitoringCoordinator**" as MonitoringCoordinator
+  class "**NotificationService**" as NotificationService
+}
+
+MonitoringService ..|> IMonitoringService
+MonitoringService -- IProbe
+MonitoringService -- StatusEvaluator
+MonitoringService ..> HostSnapshot
+PortScanner ..|> IPortScanner
+PortScanner ..> PortSet
+LanDiscovery ..|> ILanDiscovery
+LanDiscovery -- IProbe
+LanDiscovery ..> LanHostInfo
+JsonHostRepository ..|> IHostRepository
+JsonSettingsStore ..|> ISettingsStore
+MonitoringCoordinator -- IMonitoringService
+InMemoryHistoryStore ..|> IHistoryStore
+CsvExporter ..|> IResultExporter
+JsonExporter ..|> IResultExporter
+HostSnapshot -- Host
+IProbe ..> ProbeResult
+
+App -- ShellWindow
+ShellWindow -- MainViewModel
+MainViewModel --|> ViewModelBase
+HostCardViewModel --|> ViewModelBase
+PortsViewModel --|> ViewModelBase
+LanDiscoveryViewModel --|> ViewModelBase
+SettingsViewModel --|> ViewModelBase
+MainViewModel *-- HostCardViewModel
+HostCardViewModel ..> HostSnapshot
+PortsViewModel ..> PortSet
+LanDiscoveryViewModel ..> LanHostInfo
+SettingsViewModel ..> AppSettings
+NotificationService ..> HostSnapshot
+LiquidPing.App ..> LiquidPing.Core
+@enduml

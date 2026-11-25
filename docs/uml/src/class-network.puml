@@ -36,13 +36,13 @@ package "LiquidPing.Core" {
 
   package "Probes" {
     interface "IProbe" as IProbe <<interface>> {
-      +ProbeAsync(host : Host, timeout : TimeSpan, ct : CancellationToken) : Task<ProbeResult>
+      +ProbeAsync(host : Host, timeout : TimeSpan,\n                  ct : CancellationToken) : Task<ProbeResult>
     }
   }
 
   package "Scanning" {
     interface "IPortScanner" as IPortScanner <<interface>> {
-      +ScanAsync(host : Host, ports : PortSet, progress : IProgress<PortScanProgress>, ct : CancellationToken) : Task<PortScanResult>
+      +ScanAsync(host : Host, ports : PortSet,\n                  progress : IProgress<PortScanProgress>,\n                  ct : CancellationToken) : Task<PortScanResult>
     }
 
     class "**PortScanner**" as PortScanner {
@@ -86,7 +86,7 @@ package "LiquidPing.Core" {
 
   package "Discovery" {
     interface "ILanDiscovery" as ILanDiscovery <<interface>> {
-      +DiscoverAsync(progress : IProgress<LanScanProgress>, ct : CancellationToken) : Task<IReadOnlyList<LanHostInfo>>
+      +DiscoverAsync(progress : IProgress<LanScanProgress>,\n                  ct : CancellationToken) : Task<IReadOnlyList<LanHostInfo>>
     }
 
     class "**LanDiscovery**" as LanDiscovery {
@@ -132,7 +132,7 @@ package "LiquidPing.Core" {
     }
 
     interface "IHostNameResolver" as IHostNameResolver <<interface>> {
-      +ResolveAsync(address : IPAddress, ct : CancellationToken) : Task<string>
+      +ResolveAsync(address : IPAddress,\n                  ct : CancellationToken) : Task<string>
     }
 
     class "**DnsHostNameResolver**" as DnsHostNameResolver {

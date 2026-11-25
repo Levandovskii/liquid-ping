@@ -35,12 +35,12 @@ node "Хосты локальной сети\n(IPv4-подсети)" <<device>> 
 node "DNS-сервер" <<device>> as DnsServer
 node "Узлы сети Интернет\n(сервисы, сайты)" <<device>> as InternetHosts
 
-AppArt --> CoreArt : вызов контрактов
+AppArt --> CoreArt
 AppArt --> LibsArt
-AppArt --> AppData : JSON
-CoreArt --> AppData : журнал
+AppArt --> AppData
+CoreArt --> AppData
 
-Workstation -- LanSwitch : Ethernet
+Workstation -- LanSwitch
 LanSwitch -- LanHosts : IPv4/ARP
 LanSwitch -- InternetHosts : ICMP/TCP/HTTP(S)
 Workstation ..> DnsServer : DNS

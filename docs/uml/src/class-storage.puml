@@ -71,7 +71,7 @@ package "LiquidPing.Core" {
   package "Storage" {
     interface "IHostRepository" as IHostRepository <<interface>> {
       +LoadAsync(ct : CancellationToken) : Task<IReadOnlyList<Host>>
-      +SaveAsync(hosts : IReadOnlyList<Host>, ct : CancellationToken) : Task
+      +SaveAsync(hosts : IReadOnlyList<Host>,\n                  ct : CancellationToken) : Task
     }
 
     class "**JsonHostRepository**" as JsonHostRepository {
@@ -93,7 +93,7 @@ package "LiquidPing.Core" {
 
     class "**JsonFileStore**" as JsonFileStore {
       +ReadAsync<T>(path : string, ct : CancellationToken) : Task<T>
-      +WriteAsync<T>(path : string, value : T, ct : CancellationToken) : Task
+      +WriteAsync<T>(path : string, value : T,\n                  ct : CancellationToken) : Task
     }
 
     class "**AppPaths**" as AppPaths {
@@ -133,7 +133,7 @@ package "LiquidPing.Core" {
     }
 
     interface "IResultExporter" as IResultExporter <<interface>> {
-      +ExportAsync(path : string, snapshots : IReadOnlyList<HostSnapshot>, ct : CancellationToken) : Task
+      +ExportAsync(path : string,\n                  snapshots : IReadOnlyList<HostSnapshot>,\n                  ct : CancellationToken) : Task
     }
 
     class "**CsvExporter**" as CsvExporter {
@@ -155,7 +155,7 @@ DefaultHosts ..> Host : создаёт
 AppSettings ..> ThemeMode
 
 InMemoryHistoryStore ..|> IHistoryStore
-IHistoryStore "1" *-- "0..*" HistoryPoint : хранит
+IHistoryStore "1" *-- "0..*" HistoryPoint
 TrafficCounter ..> ProbeResult : считает
 CsvExporter ..|> IResultExporter
 JsonExporter ..|> IResultExporter

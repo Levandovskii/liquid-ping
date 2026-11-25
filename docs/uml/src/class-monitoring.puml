@@ -84,7 +84,7 @@ package "LiquidPing.Core" {
   package "Probes" {
     interface "IProbe" as IProbe <<interface>> {
       +Kind : ProbeKind
-      +ProbeAsync(host : Host, timeout : TimeSpan, ct : CancellationToken) : Task<ProbeResult>
+      +ProbeAsync(host : Host, timeout : TimeSpan,\n                  ct : CancellationToken) : Task<ProbeResult>
     }
 
     class "**IcmpProbe**" as IcmpProbe {
@@ -152,7 +152,7 @@ MonitoringService "1" -- "1" StatusEvaluator
 MonitoringService "1" *-- "1..*" HostResultWindow : ведёт
 MonitoringService ..> HostSnapshot
 MonitoringService ..> HostUpdatedEventArgs
-HostUpdatedEventArgs "1" *-- "1" HostSnapshot : содержит
+HostUpdatedEventArgs "1" *-- "1" HostSnapshot
 
 StatusEvaluator ..> HostResultWindow
 HostSnapshot "*" -- "1" Host

@@ -55,8 +55,8 @@ Tests ..> Core : тесты
 Views --> ViewModels
 Monitoring --> Probes
 Discovery --> Probes
-Shell ..> Dwm : backdrop
-Shell ..> Toast : уведомления
+Shell ..> Dwm
+Shell ..> Toast
 Probes ..> NetStack : ICMP, TCP, HTTP(S), DNS
 Discovery ..> NetStack : ICMP, ARP
 Storage ..> FileSystem : hosts.json, settings.json
