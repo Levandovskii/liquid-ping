@@ -68,5 +68,9 @@ loop пока мониторинг запущен
 end
 
 User -> Mon : Stop()
+destroy T
 deactivate Mon
+destroy Ev
+destroy VM
+destroy Mon
 @enduml
