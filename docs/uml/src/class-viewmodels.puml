@@ -34,6 +34,7 @@ package "LiquidPing.App" {
 
   class "**ShellWindow**" as ShellWindow {
     +ViewModel : MainViewModel
+    --
   }
 
   package "ViewModels" {
@@ -49,6 +50,7 @@ package "LiquidPing.App" {
       +AddHostCommand : IAsyncRelayCommand
       +RemoveHostCommand : IAsyncRelayCommand
       +OpenDetailsCommand : IRelayCommand
+      --
     }
 
     class "**HostCardViewModel**" as HostCardViewModel {
@@ -73,6 +75,7 @@ package "LiquidPing.App" {
       +Progress : int
       +ScanCommand : IAsyncRelayCommand
       +CancelCommand : IRelayCommand
+      --
     }
 
     class "**LanDiscoveryViewModel**" as LanDiscoveryViewModel {
@@ -80,6 +83,7 @@ package "LiquidPing.App" {
       +IsScanning : bool
       +ScanCommand : IAsyncRelayCommand
       +AddToMonitoringCommand : IAsyncRelayCommand
+      --
     }
 
     class "**SettingsViewModel**" as SettingsViewModel {

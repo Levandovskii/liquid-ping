@@ -31,6 +31,7 @@ package "LiquidPing.Core" {
       +Id : Guid
       +Name : string
       +Address : string
+      --
     }
 
     class "**ProbeResult**" as ProbeResult {
@@ -39,6 +40,7 @@ package "LiquidPing.Core" {
       +Latency : TimeSpan
       +BytesSent : long
       +BytesReceived : long
+      --
     }
 
     class "**HostSnapshot**" as HostSnapshot {
@@ -46,6 +48,7 @@ package "LiquidPing.Core" {
       +Status : HostStatus
       +Latency : TimeSpan
       +PacketLoss : double
+      --
     }
 
     class "**AppSettings**" as AppSettings {
@@ -59,6 +62,7 @@ package "LiquidPing.Core" {
       +Language : string
       +NotificationsEnabled : bool
       +TrayEnabled : bool
+      --
     }
 
     enum "ThemeMode" as ThemeMode <<enumeration>> {
@@ -101,6 +105,7 @@ package "LiquidPing.Core" {
       +{static} HostsFile : string
       +{static} SettingsFile : string
       +{static} LogDirectory : string
+      --
     }
 
     class "**DefaultHosts**" as DefaultHosts {
@@ -123,6 +128,7 @@ package "LiquidPing.Core" {
     class "**HistoryPoint**" as HistoryPoint {
       +Timestamp : DateTimeOffset
       +Latency : TimeSpan
+      --
     }
 
     class "**TrafficCounter**" as TrafficCounter {

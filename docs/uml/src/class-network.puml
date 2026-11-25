@@ -31,6 +31,7 @@ package "LiquidPing.Core" {
       +Id : Guid
       +Name : string
       +Address : string
+      --
     }
   }
 
@@ -63,6 +64,7 @@ package "LiquidPing.Core" {
       +State : PortState
       +Latency : TimeSpan
       +ServiceName : string
+      --
     }
 
     class "**PortScanResult**" as PortScanResult {
@@ -70,11 +72,13 @@ package "LiquidPing.Core" {
       +Results : IReadOnlyList<PortResult>
       +Cancelled : bool
       +Duration : TimeSpan
+      --
     }
 
     class "**PortScanProgress**" as PortScanProgress {
       +Completed : int
       +Total : int
+      --
     }
 
     enum "PortState" as PortState <<enumeration>> {
@@ -103,11 +107,13 @@ package "LiquidPing.Core" {
       +HostName : string
       +MacAddress : PhysicalAddress
       +Vendor : string
+      --
     }
 
     class "**LanScanProgress**" as LanScanProgress {
       +Completed : int
       +Total : int
+      --
     }
 
     interface "IOuiLookup" as IOuiLookup <<interface>> {
@@ -129,6 +135,7 @@ package "LiquidPing.Core" {
     class "**ArpEntry**" as ArpEntry {
       +Address : IPAddress
       +MacAddress : PhysicalAddress
+      --
     }
 
     interface "IHostNameResolver" as IHostNameResolver <<interface>> {

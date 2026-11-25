@@ -46,6 +46,7 @@ package "LiquidPing.Core" {
       +PacketLoss : double
       +ResolvedAddress : IPAddress
       +Timestamp : DateTimeOffset
+      --
     }
 
     class "**ProbeResult**" as ProbeResult {
@@ -56,6 +57,7 @@ package "LiquidPing.Core" {
       +BytesSent : long
       +BytesReceived : long
       +Detail : string
+      --
     }
 
     enum "ProbeKind" as ProbeKind <<enumeration>> {
@@ -138,6 +140,7 @@ package "LiquidPing.Core" {
     class "**HostUpdatedEventArgs**" as HostUpdatedEventArgs {
       +Snapshot : HostSnapshot
       +Results : IReadOnlyList<ProbeResult>
+      --
     }
   }
 }

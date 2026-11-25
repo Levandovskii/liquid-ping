@@ -80,10 +80,12 @@ package "LiquidPing.App" {
     class "**MainViewModel**" as MainViewModel {
       +Hosts : ObservableCollection<HostCardViewModel>
       +IsMonitoring : bool
+      --
     }
 
     class "**SettingsViewModel**" as SettingsViewModel {
       +Settings : AppSettings
+      --
     }
   }
 }
@@ -96,6 +98,7 @@ package "LiquidPing.Core" {
 
     class "**HostUpdatedEventArgs**" as HostUpdatedEventArgs {
       +Snapshot : HostSnapshot
+      --
     }
   }
 }
