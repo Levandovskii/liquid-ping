@@ -73,4 +73,5 @@ deactivate Mon
 destroy Ev
 destroy VM
 destroy Mon
+destroy User
 @enduml
